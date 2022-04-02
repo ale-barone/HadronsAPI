@@ -149,20 +149,20 @@ std::string make_RHQII(Application &application, std::string q, int index){
 }
 
 // RHQIII
-std::string make_RHQIII(Application &application, std::string q, int index){
+std::string make_RHQIII(Application &application, std::string q, int index, std::string flag="LeftRight"){
     MRHQ::RHQInsertionIII::Par Impr;
     assign_RHQ_par(Impr, q, index);
-    Impr.flag = strToVec<OpIIIFlag>("LeftRight")[0];
+    Impr.flag = strToVec<OpIIIFlag>(flag)[0];
     std::string Impr_name = make_RHQ_name(Impr, "quark_ImprIII");
     application.createModule<MRHQ::RHQInsertionIII>(Impr_name, Impr);
     return Impr_name;
 }
 
 // RHQIV
-std::string make_RHQIV(Application &application, std::string q, int index){
+std::string make_RHQIV(Application &application, std::string q, int index, std::string flag="LeftRight"){
     MRHQ::RHQInsertionIV::Par Impr;
     assign_RHQ_par(Impr, q, index);
-    Impr.flag = strToVec<OpIVFlag>("LeftRight")[0];
+    Impr.flag = strToVec<OpIVFlag>(flag)[0];
     std::string Impr_name = make_RHQ_name(Impr, "quark_ImprIV");
     application.createModule<MRHQ::RHQInsertionIV>(Impr_name, Impr);
     return Impr_name;
