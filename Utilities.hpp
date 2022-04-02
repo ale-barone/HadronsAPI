@@ -1,17 +1,27 @@
 #include <iomanip>
 #include <iostream>
 #include <algorithm> 
+#include <Hadrons/Modules.hpp>
+
+using namespace Grid;
+using namespace Hadrons;
+
 
 #ifndef Hadrons_API_Utilities_hpp_
 #define Hadrons_API_Utilities_hpp_
 
 #define BEGIN_API_NAMESPACE \
 namespace API {
-#define END_API_NAMESPACE }}
+
+#define END_API_NAMESPACE }
 
 #define BEGIN_APIMODULE_NAMESPACE(name)\
+BEGIN_API_NAMESPACE \
 namespace name {
-#define END_APIMODULE_NAMESPACE }
+
+#define END_APIMODULE_NAMESPACE \
+END_API_NAMESPACE \
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +97,21 @@ size_t pos_5th_underscore(std::string string){
 	return pos;
 }
 
+size_t pos_4th_underscore(std::string string){
+	size_t pos = string.size();
+	char underscore = '_';
+	int num_underscore = 0;
+	for (int i=0; i<string.size(); i++){
+		if (string[i] == underscore)
+			num_underscore++;
+		if (num_underscore == 4){
+			pos = i;
+			break;
+		}
+	}
+	return pos;
+}
+
 // number of decimals (max is 6)
 int num_decimals(float num){
     num = std::abs(num-(int)num);
@@ -127,10 +152,33 @@ std::string make_mom_par(std::array<int, 4> mom){
     return mom_par;
 }
 
+// make 3momentum parameter in the form "x x x"
+std::string make_3mom_par(std::array<int, 3> mom){
+    std::string mom_par = std::to_string(mom[0]);
+    for (int d=1; d<mom.size(); d++ ){
+        mom_par += " " + std::to_string(mom[d]);
+    }
+    return mom_par;
+}
+
 // make momentum string in the form "x_x_x_x"
 std::string make_mom_name(std::array<int, 4> mom){
     std::string mom_str = space_to_underscore(make_mom_par(mom));
     return mom_str;
+}
+
+// make 3momentum string in the form "x_x_x" 
+std::string make_3mom_name(std::array<int, 3> mom){
+    std::string mom_str = space_to_underscore(make_3mom_par(mom));
+    return mom_str;
+}
+
+// get momentum in a string with the "mom_" keyword
+std::string get_snkmom(std::string string){
+    std::string mom_full = copy_from(string, "mom_");
+	std::string mom_string = copy_from(mom_full, "mom_", pos_4th_underscore(mom_full));
+	std::string mom = remove_str(mom_string, "mom_");
+	return mom;
 }
 
 // get momentum in a string with the "mom_" keyword
