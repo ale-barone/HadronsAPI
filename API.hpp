@@ -3,3 +3,4 @@
 #include "ASource.hpp"
 #include "ASink.hpp"
 #include "AFermion.hpp"
+#include "AContraction.hpp"
