@@ -84,7 +84,7 @@ void make_contraction(Application &application,
                        std::string q2,
                        std::array<std::string, 2> gammas,
                        std::string sink,
-                       std::string folder_output){
+                       std::string folder_output="output"){
 
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas, sink);
@@ -102,7 +102,7 @@ void make_contraction(Application &application,
                        std::string q2,
                        std::vector<std::array<std::string, 2>> gammas_list,
                        std::string sink,
-                       std::string folder_output){
+                       std::string folder_output="output"){
     
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas_list, sink);
@@ -139,9 +139,9 @@ void make_2pt_contraction(Application &application,
                           std::string q2,
                           std::array<std::string, 2> gammas,
                           std::string sink,
-                          std::string folder_output="output/2pt"){
+                          std::string folder_output="output"){
 
-    make_contraction(application, "2pt", q1, q2, gammas, sink, folder_output);
+    make_contraction(application, "2pt", q1, q2, gammas, sink, folder_output + "/2pt");
 }
 
 // general 2pt contraction for list of couples {gammas_snk, gamma_src}
@@ -150,9 +150,9 @@ void make_2pt_contraction(Application &application,
                           std::string q2,
                           std::vector<std::array<std::string, 2>> gammas_list,
                           std::string sink,
-                          std::string folder_output="output/2pt"){
+                          std::string folder_output="output"){
     
-    make_contraction(application, "2pt", q1, q2, gammas_list, sink, folder_output);
+    make_contraction(application, "2pt", q1, q2, gammas_list, sink, folder_output + "/2pt");
 }
 
 // general 2pt contraction for list of gammas_snk
@@ -162,9 +162,9 @@ void make_2pt_contraction(Application &application,
                           std::vector<std::string> gammas_snk_list,
                           std::string gamma_src,
                           std::string sink,
-                          std::string folder_output="output/3pt"){
+                          std::string folder_output){
 
-    make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output);
+    make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/2pt");
 }
 
 
@@ -178,9 +178,9 @@ void make_3pt_contraction(Application &application,
                           std::string q2,
                           std::array<std::string, 2> gammas,
                           std::string sink,
-                          std::string folder_output="output/3pt"){
+                          std::string folder_output="output"){
 
-    make_contraction(application, "3pt", q1, q2, gammas, sink, folder_output);
+    make_contraction(application, "3pt", q1, q2, gammas, sink, folder_output + "/3pt");
 }
 
 // general 3pt contraction for list of couples {gammas_snk, gamma_src}
@@ -189,9 +189,9 @@ void make_3pt_contraction(Application &application,
                           std::string q2,
                           std::vector<std::array<std::string, 2>> gammas_list,
                           std::string sink,
-                          std::string folder_output="output/3pt"){
+                          std::string folder_output="output"){
     
-    make_contraction(application, "3pt", q1, q2, gammas_list, sink, folder_output);
+    make_contraction(application, "3pt", q1, q2, gammas_list, sink, folder_output + "/3pt");
 }
 
 // general 3pt contraction for list of gammas_snk
@@ -201,9 +201,9 @@ void make_3pt_contraction(Application &application,
                           std::vector<std::string> gammas_snk_list,
                           std::string gamma_src,
                           std::string sink,
-                          std::string folder_output="output/3pt"){
+                          std::string folder_output){
 
-    make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output);
+    make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/3pt");
 }
 
 END_APIMODULE_NAMESPACE
