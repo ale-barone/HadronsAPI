@@ -47,7 +47,7 @@ std::string make_propagator(Application &application, std::string name, std::str
 
 // SEQUENTIAL PROPAGATOR
 std::string make_seq_propagator(Application &application, std::string name, std::string seq_source, std::string solver){
-    return make_propagator(Application &application, std::string name, std::string source, std::string solver)
+    return make_propagator(application, name, seq_source, solver);
 }
 
 
