@@ -64,7 +64,7 @@ template <typename TContraction>
 std::string make_contraction_name(TContraction &contraction,
                                   std::string prefix,
                                   std::string gamma_snk){
-    std::string snkmom = get_snkmom(contraction.sink);
+    std::string snkmom = get_mom(contraction.sink);
     std::string contraction_name = prefix + "_"
                                    + "snkmom_" + snkmom + "_"
                                    + contraction.q1 + "_"
@@ -204,6 +204,45 @@ void make_3pt_contraction(Application &application,
                           std::string folder_output){
 
     make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/3pt");
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 4pt contraction
+////////////////////////////////////////////////////////////////////////////////
+
+// general 4pt contraction
+void make_4pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::array<std::string, 2> gammas,
+                          std::string sink,
+                          std::string folder_output="output"){
+
+    make_contraction(application, "4pt", q1, q2, gammas, sink, folder_output + "/4pt");
+}
+
+// general 4pt contraction for list of couples {gammas_snk, gamma_src}
+void make_4pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::array<std::string, 2>> gammas_list,
+                          std::string sink,
+                          std::string folder_output="output"){
+    
+    make_contraction(application, "4pt", q1, q2, gammas_list, sink, folder_output + "/4pt");
+}
+
+// general 4pt contraction for list of gammas_snk
+void make_4pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::string> gammas_snk_list,
+                          std::string gamma_src,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "4pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/4pt");
 }
 
 END_APIMODULE_NAMESPACE
