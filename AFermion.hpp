@@ -24,8 +24,9 @@ std::string make_propagator_name(std::string name, std::string source, std::stri
         mom_name = "_mom_" + mom;
     
     std::string quark_source = "";
-    if (has_string(source, "source_seq"))
-        quark_source = "_" + remove_twist_str(remove_str(remove_str(source, "source_seq_"), "sm_"));
+    if (has_string(source, "_seq"))
+        // quark_source = "_" + remove_twist_str(remove_str(remove_str(source, "source_seq_"), "sm_"));
+        quark_source = "_" + remove_twist_str(remove_str(remove_str(remove_str(source, "source_"), "seq_"), "sm_"));
     
     std::string name_prop = 
           "quark_" + name 
