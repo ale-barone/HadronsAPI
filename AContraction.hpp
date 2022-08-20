@@ -139,7 +139,7 @@ void make_2pt_contraction(Application &application,
                           std::string q2,
                           std::array<std::string, 2> gammas,
                           std::string sink,
-                          std::string folder_output="output"){
+                          std::string folder_output){
 
     make_contraction(application, "2pt", q1, q2, gammas, sink, folder_output + "/2pt");
 }
@@ -150,7 +150,7 @@ void make_2pt_contraction(Application &application,
                           std::string q2,
                           std::vector<std::array<std::string, 2>> gammas_list,
                           std::string sink,
-                          std::string folder_output="output"){
+                          std::string folder_output){
     
     make_contraction(application, "2pt", q1, q2, gammas_list, sink, folder_output + "/2pt");
 }
@@ -178,7 +178,7 @@ void make_3pt_contraction(Application &application,
                           std::string q2,
                           std::array<std::string, 2> gammas,
                           std::string sink,
-                          std::string folder_output="output"){
+                          std::string folder_output){
 
     make_contraction(application, "3pt", q1, q2, gammas, sink, folder_output + "/3pt");
 }
@@ -189,7 +189,7 @@ void make_3pt_contraction(Application &application,
                           std::string q2,
                           std::vector<std::array<std::string, 2>> gammas_list,
                           std::string sink,
-                          std::string folder_output="output"){
+                          std::string folder_output){
     
     make_contraction(application, "3pt", q1, q2, gammas_list, sink, folder_output + "/3pt");
 }
@@ -217,7 +217,7 @@ void make_4pt_contraction(Application &application,
                           std::string q2,
                           std::array<std::string, 2> gammas,
                           std::string sink,
-                          std::string folder_output="output"){
+                          std::string folder_output){
 
     make_contraction(application, "4pt", q1, q2, gammas, sink, folder_output + "/4pt");
 }
@@ -228,7 +228,7 @@ void make_4pt_contraction(Application &application,
                           std::string q2,
                           std::vector<std::array<std::string, 2>> gammas_list,
                           std::string sink,
-                          std::string folder_output="output"){
+                          std::string folder_output){
     
     make_contraction(application, "4pt", q1, q2, gammas_list, sink, folder_output + "/4pt");
 }
