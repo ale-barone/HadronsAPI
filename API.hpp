@@ -1,5 +1,4 @@
 // #include "Utilities.hpp"
-#include "ARHQ.hpp"
 #include "ASource.hpp"
 #include "ASink.hpp"
 #include "AFermion.hpp"
