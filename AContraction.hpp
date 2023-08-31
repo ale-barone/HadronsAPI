@@ -59,16 +59,59 @@ void assign_contraction_par(TContraction &contraction,
     contraction.gammas = gammas;    
 }
 
+template <typename TContraction>
+void assign_contraction_par(TContraction &contraction,
+                            std::string q1,
+                            std::string q2,
+                            std::string gamma_snk,
+                            std::vector<std::string> gammas_src_list,
+                            std::string sink){
+    contraction.q1 = q1;
+    contraction.q2 = q2;
+    contraction.sink = sink;
+    // gammas
+    std::string gammas = "";
+    for (int g=0; g<gammas_src_list.size(); g++){
+        std::string gamma_src = gammas_src_list[g];
+        gammas += "(" + gamma_snk + " " + gamma_src + ")";
+    }
+    contraction.gammas = gammas;    
+}
+
+template <typename TContraction>
+void assign_contraction_par(TContraction &contraction,
+                            std::string q1,
+                            std::string q2,
+                            std::vector<std::string> gammas_snk_list,
+                            std::vector<std::string> gammas_src_list,
+                            std::string sink){
+    contraction.q1 = q1;
+    contraction.q2 = q2;
+    contraction.sink = sink;
+    // gammas
+    std::string gammas = "";
+    for (int gsnk=0; gsnk<gammas_snk_list.size(); gsnk++){
+        std::string gamma_snk = gammas_snk_list[gsnk];
+        for (int gsrc=0; gsrc<gammas_src_list.size(); gsrc++){
+            std::string gamma_src = gammas_src_list[gsrc];
+            gammas += "(" + gamma_snk + " " + gamma_src + ")";
+        }
+    }
+    contraction.gammas = gammas;    
+}
+
 // make name
 template <typename TContraction>
 std::string make_contraction_name(TContraction &contraction,
                                   std::string prefix,
-                                  std::string gamma_snk){
+                                  std::string gamma_snk,
+                                  std::string gamma_src){
     std::string snkmom = get_mom(contraction.sink);
     std::string contraction_name = prefix + "_"
                                    + "snkmom_" + snkmom + "_"
-                                   + contraction.q1 + "_"
                                    + gamma_snk + "_" 
+                                   + contraction.q1 + "_"
+                                   + gamma_src + "_" 
                                    + contraction.q2;
     return contraction_name;
 }
@@ -90,7 +133,8 @@ void make_contraction(Application &application,
     assign_contraction_par(contraction, q1, q2, gammas, sink);
 
     std::string gamma_snk = gammas[0];
-    std::string contraction_name = make_contraction_name(contraction, prefix, gamma_snk);
+    std::string gamma_src = gammas[1];
+    std::string contraction_name = make_contraction_name(contraction, prefix, gamma_snk, gamma_src);
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -106,7 +150,7 @@ void make_contraction(Application &application,
     
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas_list, sink);
-    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas");
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammass", "Gammass");
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -124,7 +168,43 @@ void make_contraction(Application &application,
     // create contraction
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas_snk_list, gamma_src, sink);
-    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas");
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas", gamma_src);
+    contraction.output = folder_output + "/" + contraction_name;
+    application.createModule<MContraction::Meson>(contraction_name, contraction);
+}
+
+// general contraction for list of gammas_src
+void make_contraction(Application &application,
+                          std::string prefix,
+                          std::string q1,
+                          std::string q2,
+                          std::string gamma_snk,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    // create contraction
+    MContraction::Meson::Par contraction;
+    assign_contraction_par(contraction, q1, q2, gamma_snk, gammas_src_list, sink);
+    std::string contraction_name = make_contraction_name(contraction, prefix, gamma_snk, "Gammas");
+    contraction.output = folder_output + "/" + contraction_name;
+    application.createModule<MContraction::Meson>(contraction_name, contraction);
+}
+
+// general contraction for list of gammas_src
+void make_contraction(Application &application,
+                          std::string prefix,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::string> gammas_snk_list,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    // create contraction
+    MContraction::Meson::Par contraction;
+    assign_contraction_par(contraction, q1, q2, gammas_snk_list, gammas_src_list, sink);
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas", "Gammas");
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -164,7 +244,30 @@ void make_2pt_contraction(Application &application,
                           std::string sink,
                           std::string folder_output){
 
-    make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/2pt");
+    make_contraction(application, "2pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/2pt");
+}
+
+// general 2pt contraction for list of gammas_src
+void make_2pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::string gamma_snk,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "2pt", q1, q2, gamma_snk, gammas_src_list, sink, folder_output + "/2pt");
+}
+
+void make_2pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::string> gammas_snk_list,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "2pt", q1, q2, gammas_snk_list, gammas_src_list, sink, folder_output + "/2pt");
 }
 
 
@@ -206,6 +309,29 @@ void make_3pt_contraction(Application &application,
     make_contraction(application, "3pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/3pt");
 }
 
+// general 3pt contraction for list of gammas_src
+void make_3pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::string gamma_snk,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "3pt", q1, q2, gamma_snk, gammas_src_list, sink, folder_output + "/3pt");
+}
+
+// general 3pt contraction for list of gammas_src
+void make_3pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::string> gammas_snk_list,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "3pt", q1, q2, gammas_snk_list, gammas_src_list, sink, folder_output + "/3pt");
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 4pt contraction
@@ -243,6 +369,30 @@ void make_4pt_contraction(Application &application,
                           std::string folder_output){
 
     make_contraction(application, "4pt", q1, q2, gammas_snk_list, gamma_src, sink, folder_output + "/4pt");
+}
+
+// general 4pt contraction for list of gammas_src
+void make_4pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::string gamma_snk,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "4pt", q1, q2, gamma_snk, gammas_src_list, sink, folder_output + "/4pt");
+}
+
+// general 4pt contraction for list of gammas_src
+void make_4pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::string> gammas_snk_list,
+                          std::vector<std::string> gammas_src_list,
+                          std::string sink,
+                          std::string folder_output){
+
+    make_contraction(application, "4pt", q1, q2, gammas_snk_list, gammas_src_list, sink, folder_output + "/4pt");
 }
 
 END_APIMODULE_NAMESPACE

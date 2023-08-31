@@ -22,26 +22,26 @@ std::string make_z2_source(Application &application, int tA, int tB){
     return source_z2_name;
 }
 
-// smeared source (just template)
+// // smeared source (just template)
 // std::string make_sm_source(Application &application, std::string source){
 //     std::string source_sm_name = "source_sm" + remove_str(source, "source");
 //     MSource::JacobiSmear::Par source_sm;
 //     source_sm.gauge      = "gauge";
-//     source_sm.width      = ;
-//     source_sm.iterations = ;
-//     source_sm.orthog     = ;
+//     source_sm.width      = 7.86;
+//     source_sm.iterations = 100;
+//     source_sm.orthog     = 3;
 //     source_sm.source     = source;
 //     application.createModule<MSource::JacobiSmear>(source_sm_name, source_sm);
 //     return source_sm_name;
 // }
 
-// smeared propagator (just template)
+// // smeared propagator (just template)
 // std::string make_sm_propagator(Application &application, std::string name, std::string source){
 //     MSource::JacobiSmear::Par source_sm;
 //     source_sm.gauge      = "gauge";
-//     source_sm.width      = ;
-//     source_sm.iterations = ;
-//     source_sm.orthog     = ;
+//     source_sm.width      = 7.86;
+//     source_sm.iterations = 100;
+//     source_sm.orthog     = 3;
 //     source_sm.source     = source;
 
 //     std::string twist = get_twist(source);
