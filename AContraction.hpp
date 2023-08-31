@@ -90,7 +90,7 @@ void assign_contraction_par(TContraction &contraction,
     contraction.sink = sink;
     // gammas
     std::string gammas = "";
-    for (int gsnk=0; gsnk<gammas_src_list.size(); gsnk++){
+    for (int gsnk=0; gsnk<gammas_snk_list.size(); gsnk++){
         std::string gamma_snk = gammas_snk_list[gsnk];
         for (int gsrc=0; gsrc<gammas_src_list.size(); gsrc++){
             std::string gamma_src = gammas_src_list[gsrc];
@@ -104,12 +104,14 @@ void assign_contraction_par(TContraction &contraction,
 template <typename TContraction>
 std::string make_contraction_name(TContraction &contraction,
                                   std::string prefix,
-                                  std::string gamma_snk){
+                                  std::string gamma_snk,
+                                  std::string gamma_src){
     std::string snkmom = get_mom(contraction.sink);
     std::string contraction_name = prefix + "_"
                                    + "snkmom_" + snkmom + "_"
-                                   + contraction.q1 + "_"
                                    + gamma_snk + "_" 
+                                   + contraction.q1 + "_"
+                                   + gamma_src + "_" 
                                    + contraction.q2;
     return contraction_name;
 }
@@ -131,7 +133,8 @@ void make_contraction(Application &application,
     assign_contraction_par(contraction, q1, q2, gammas, sink);
 
     std::string gamma_snk = gammas[0];
-    std::string contraction_name = make_contraction_name(contraction, prefix, gamma_snk);
+    std::string gamma_src = gammas[1];
+    std::string contraction_name = make_contraction_name(contraction, prefix, gamma_snk, gamma_src);
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -147,7 +150,7 @@ void make_contraction(Application &application,
     
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas_list, sink);
-    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas");
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammass", "Gammass");
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -165,7 +168,7 @@ void make_contraction(Application &application,
     // create contraction
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas_snk_list, gamma_src, sink);
-    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas");
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas", gamma_src);
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -183,7 +186,7 @@ void make_contraction(Application &application,
     // create contraction
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gamma_snk, gammas_src_list, sink);
-    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas");
+    std::string contraction_name = make_contraction_name(contraction, prefix, gamma_snk, "Gammas");
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
@@ -201,7 +204,7 @@ void make_contraction(Application &application,
     // create contraction
     MContraction::Meson::Par contraction;
     assign_contraction_par(contraction, q1, q2, gammas_snk_list, gammas_src_list, sink);
-    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas");
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas", "Gammas");
     contraction.output = folder_output + "/" + contraction_name;
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
