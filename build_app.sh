@@ -18,10 +18,6 @@ mkdir build
 cd build
 ../configure --with-grid=$GRID --with-hadrons=$HAD CC=clang CXX=clang++ CXXFLAGS="-g -std=c++11 -I${API}"
 
-mkdir template
-cp scripts/main_template.cpp
-cp scripts/make_template_xml.sh
-
 mkdir ../template
 cd ../template
 cp ../../scripts/main_template.cpp .
