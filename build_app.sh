@@ -7,7 +7,7 @@ HAD='/path/to/hadrons/install'
 # Grid install dir
 GRID='/path/to/grid/install'
 # HadronsAPI install dir (from https://github.com/ale-barone/HadronsAPI on master branch)
-API=`pwd`'/API'
+API=`pwd`
 # dir to build the application
 DIR='app'
 
