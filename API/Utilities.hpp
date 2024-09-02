@@ -142,7 +142,7 @@ size_t pos_6th_underscore(std::string string, std::string begin){
 
 
 // number of decimals (max is 6)
-int num_decimals(float num){
+int num_decimals(double num){
     num = std::abs(num-(int)num);
     std::ostringstream num_stream;
     num_stream << std::abs(num);
@@ -224,7 +224,7 @@ std::string get_mom(std::string string){
 ////////////////////////////////////////////////////////////////////////////////
 
 // make twist parameter in the form "x x x x" 
-std::string make_twist_par(std::array<float, 4> twist){
+std::string make_twist_par(std::array<double, 4> twist){
     // Create an output string stream
     std::ostringstream streamObj;
     // Set fixed-point Notation and precision
@@ -243,7 +243,7 @@ std::string make_twist_par(std::array<float, 4> twist){
 }
 
 // make twist name in the form "x_x_x_x"
-std::string make_twist_name(std::array<float, 4> twist){
+std::string make_twist_name(std::array<double, 4> twist){
     std::string twist_str = space_to_underscore(make_twist_par(twist));
     return twist_str;
 }
