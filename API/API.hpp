@@ -5,3 +5,4 @@
 #include "AContraction.hpp"
 #include "AAction.hpp"
 #include "ASolver.hpp"
+#include "ARHQ.hpp"

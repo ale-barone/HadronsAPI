@@ -4,16 +4,16 @@
 
 BEGIN_APIMODULE_NAMESPACE(AAction)
 
-std::string make_action_name(std::string quark, std::array<float, 4> twist){
+std::string make_action_name(std::string quark, std::array<double, 4> twist){
     std::string twist_name = make_twist_name(twist);
     std::string action_name = "action_" + quark;
-    if (twist!=std::array<float, 4>{0, 0, 0, 0})
+    if (twist!=std::array<double, 4>{0, 0, 0, 0})
         action_name += "_tw_" + twist_name;
     return action_name;
 }
 
 // action_b
-// std::string make_action_b(Application &application, std::array<float, 4> twist = {0, 0, 0, 0}){
+// std::string make_action_b(Application &application, std::array<double, 4> twist = {0, 0, 0, 0}){
 //     std::string action_b_name = make_action_name("b", twist);
 //     MAction::WilsonClover::Par action_b;
 //     action_b.gauge = "gauge";
@@ -31,7 +31,7 @@ std::string make_action_name(std::string quark, std::array<float, 4> twist){
 // }
 
 // action_c
-std::string make_action_c(Application &application, double mass, std::array<float, 4> twist = {0., 0., 0., 0.}){
+std::string make_action_c(Application &application, double mass, std::array<double, 4> twist = {0., 0., 0., 0.}){
     // mass = 0.35, 0.40
     std::string action_c_name = make_action_name("c", twist);
     MAction::ScaledDWF::Par action_c;
@@ -47,7 +47,7 @@ std::string make_action_c(Application &application, double mass, std::array<floa
 }
 
 template <typename TDWF>
-void assign_dwf_par(TDWF &action_dwf, std::array<float, 4> twist){
+void assign_dwf_par(TDWF &action_dwf, std::array<double, 4> twist){
     action_dwf.gauge    = "gauge";
     action_dwf.Ls       = 16;
     action_dwf.M5       = 1.8;
@@ -55,7 +55,7 @@ void assign_dwf_par(TDWF &action_dwf, std::array<float, 4> twist){
     action_dwf.twist    = make_twist_par(twist);
 }
 
-std::string make_action_l(Application &application, double mass, std::array<float, 4> twist = {0., 0., 0., 0.}){
+std::string make_action_l(Application &application, double mass, std::array<double, 4> twist = {0., 0., 0., 0.}){
     std::string action_l_name = make_action_name("l", twist);
     MAction::DWF::Par action_l;
     assign_dwf_par(action_l, twist);
@@ -65,7 +65,7 @@ std::string make_action_l(Application &application, double mass, std::array<floa
     return action_l_name;
 }
 
-std::string make_action_s(Application &application, double mass, std::array<float, 4> twist = {0., 0., 0., 0.}){
+std::string make_action_s(Application &application, double mass, std::array<double, 4> twist = {0., 0., 0., 0.}){
     // usual mass is 0.03224
     std::string action_s_name = make_action_name("s", twist);
     MAction::DWF::Par action_s;
