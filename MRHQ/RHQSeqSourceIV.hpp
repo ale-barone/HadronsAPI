@@ -38,7 +38,7 @@ BEGIN_HADRONS_NAMESPACE
 /******************************************************************************
  *                         Sequential gamma source                            *
  ******************************************************************************/
-// GRID_SERIALIZABLE_ENUM(OpIVMomType, undef, Sink, 0, Twist, 1);
+GRID_SERIALIZABLE_ENUM(OpIVMomType, undef, Sink, 0, Twist, 1);
 
 BEGIN_MODULE_NAMESPACE(MRHQ)
 
@@ -51,7 +51,8 @@ public:
                                     std::string,    mom,
                                     std::string,    index,
                                     Gamma::Algebra, gamma5,
-                                    std::string,    gauge); 
+                                    std::string,    gauge,
+                                    OpIVMomType,    momType); 
 };
 
 template <typename FImpl, typename GImpl>
@@ -151,11 +152,14 @@ void TRHQSeqSourceIV<FImpl, GImpl>::makeSource(PropagatorField &src,
         ph = Zero();
 
 
-        for(unsigned int mu = 0; mu < env().getNd(); mu++)
+        if (par().momType == OpIVMomType::Sink)
         {
-            LatticeCoordinate(coor, mu);
-            ph = ph + (p[mu]/env().getDim(mu))*coor;
-        }   
+          for(unsigned int mu = 0; mu < env().getNd(); mu++)
+          {
+              LatticeCoordinate(coor, mu);
+              ph = ph + (p[mu]/env().getDim(mu))*coor;
+          }   
+        }
 
         ph = exp((RealD)(2*M_PI)*i*ph);
         LatticeCoordinate(t, Tp);
@@ -174,9 +178,12 @@ void TRHQSeqSourceIV<FImpl, GImpl>::makeSource(PropagatorField &src,
     Gamma gy(Gamma::Algebra::GammaY);
     Gamma gz(Gamma::Algebra::GammaZ);
 
-    const PropagatorField mDx = GImpl::CovShiftBackward(gauge_x,0,field) - GImpl::CovShiftForward(gauge_x,0,field);
-    const PropagatorField mDy = GImpl::CovShiftBackward(gauge_y,1,field) - GImpl::CovShiftForward(gauge_y,1,field);
-    const PropagatorField mDz = GImpl::CovShiftBackward(gauge_z,2,field) - GImpl::CovShiftForward(gauge_z,2,field);
+    const PropagatorField Dx_f = GImpl::CovShiftForward(gauge_x,0,field);
+    const PropagatorField Dy_f = GImpl::CovShiftForward(gauge_y,1,field);
+    const PropagatorField Dz_f = GImpl::CovShiftForward(gauge_z,2,field);
+    const PropagatorField Dx_b = GImpl::CovShiftBackward(gauge_x,0,field);
+    const PropagatorField Dy_b = GImpl::CovShiftBackward(gauge_y,1,field);
+    const PropagatorField Dz_b = GImpl::CovShiftBackward(gauge_z,2,field);
 
     Gamma::Algebra gi; 
     switch(std::stoi(par().index)){
@@ -196,11 +203,51 @@ void TRHQSeqSourceIV<FImpl, GImpl>::makeSource(PropagatorField &src,
             HADRONS_ERROR(Argument, "Index must be in {0, 1, 2, 3}."); 
     }
 
-    src =   gi*g5*gx * mDx
-          + gi*g5*gy * mDy
-          + gi*g5*gz * mDz;
+    // x
+    double ph_px = 2*M_PI*p[0]/env().getDim(0);
+    
+    ComplexD ph_px_f = exp(i*ph_px);
+    PropagatorField src_x_f = gi*g5*gx * Dx_f;
+    src_x_f = ph_px_f*src_x_f;
+    
+    ComplexD ph_px_b = exp(-i*ph_px);
+    PropagatorField src_x_b = gi*g5*gx * Dx_b;
+    src_x_b = ph_px_b*src_x_b;
 
+    // y
+    double ph_py = 2*M_PI*p[1]/env().getDim(1);
+    
+    ComplexD ph_py_f = exp(i*ph_py);
+    PropagatorField src_y_f = gi*g5*gy * Dy_f;
+    src_y_f = ph_py_f*src_y_f;
+
+    ComplexD ph_py_b = exp(-i*ph_py);
+    PropagatorField src_y_b = gi*g5*gy * Dy_b;
+    src_y_b = ph_py_b*src_y_b;
+
+    // z
+    double ph_pz = 2*M_PI*p[2]/env().getDim(2);
+    
+    ComplexD ph_pz_f = exp(i*ph_pz);
+    PropagatorField src_z_f = gi*g5*gz * Dz_f;
+    src_z_f = ph_pz_f*src_z_f;
+
+    ComplexD ph_pz_b = exp(-i*ph_pz);
+    PropagatorField src_z_b = gi*g5*gz * Dz_b;
+    src_z_b = ph_pz_b*src_z_b;
+
+    // forward
+    PropagatorField src_f = src_x_f + src_y_f + src_z_f;
+    // backward
+    PropagatorField src_b = src_x_b + src_y_b + src_z_b;
+    
+    src = src_b - src_f;
     src = where((t == par().t), ph*src, 0.*src);
+    // src =   gi*g5*gx * mDx
+    //       + gi*g5*gy * mDy
+    //       + gi*g5*gz * mDz;
+
+    // src = where((t == par().t), ph*src, 0.*src);
 }
 
 template <typename FImpl, typename GImpl>
