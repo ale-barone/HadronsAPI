@@ -53,7 +53,7 @@ BEGIN_HADRONS_NAMESPACE
 /******************************************************************************
  *                         Sequential gamma source                            *
  ******************************************************************************/
-// GRID_SERIALIZABLE_ENUM(OpIIMomType, undef, Sink, 0, Twist, 1);
+GRID_SERIALIZABLE_ENUM(OpIIMomType, undef, Sink, 0, Twist, 1);
 
 BEGIN_MODULE_NAMESPACE(MRHQ)
 
@@ -66,7 +66,8 @@ public:
                                     std::string,    mom,
                                     std::string,    index,
                                     Gamma::Algebra, gamma,
-                                    std::string,    gauge,); 
+                                    std::string,    gauge,
+                                    OpIIMomType,    momType); 
 };
 
 template <typename FImpl, typename GImpl>
@@ -167,12 +168,14 @@ void TRHQSeqSourceII<FImpl, GImpl>::makeSource(PropagatorField &src,
         envGetTmp(LatticeComplex, coor);
         ph = Zero();
 
-
-        for(unsigned int mu = 0; mu < env().getNd(); mu++)
+        if (par().momType == OpIIMomType::Sink)
         {
-            LatticeCoordinate(coor, mu);
-            ph = ph + (p[mu]/env().getDim(mu))*coor;
-        }   
+            for(unsigned int mu = 0; mu < env().getNd(); mu++)
+            {
+                LatticeCoordinate(coor, mu);
+                ph = ph + (p[mu]/env().getDim(mu))*coor;
+            }   
+        }
 
         ph = exp((RealD)(2*M_PI)*i*ph);
         LatticeCoordinate(t, Tp);
@@ -201,8 +204,10 @@ void TRHQSeqSourceII<FImpl, GImpl>::makeSource(PropagatorField &src,
     else
     {        
         double q_index = (2*M_PI*p[index]/env().getDim(index));
+        ComplexD ph_f = exp(i*q_index);
+		    ComplexD ph_b = exp(-i*q_index);
 
-	      src = src_b - src_f;
+	      src = -ph_f*src_f + ph_b*src_b;
         src = where((t == par().t), ph*(g*src), 0.*src);
     }
 

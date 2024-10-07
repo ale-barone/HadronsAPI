@@ -112,7 +112,7 @@ std::string make_RHQInsertionIV(Application &application, std::string q, std::st
 
 // assign parameters for RHQSeq
 template <typename TRHQ>
-void assign_RHQSeq_I_II_par(TRHQ &Impr, std::string q, int t, std::array<int, 4> mom, std::string dir, std::string gamma, std::string gauge){
+void assign_RHQSeq_I_II_mom_par(TRHQ &Impr, std::string q, int t, std::array<int, 4> mom, std::string dir, std::string gamma, std::string gauge){
     // assign_RHQ_par(Impr, q, index);
     Impr.q = q;
     Impr.gauge = gauge;
@@ -124,7 +124,19 @@ void assign_RHQSeq_I_II_par(TRHQ &Impr, std::string q, int t, std::array<int, 4>
 }
 
 template <typename TRHQ>
-void assign_RHQSeq_III_IV_par(TRHQ &Impr, std::string q, int t, std::array<int, 4> mom, std::string dir, std::string gamma5, std::string gauge){
+void assign_RHQSeq_II_twist_par(TRHQ &Impr, std::string q, int t, std::array<double, 4> twist, std::string dir, std::string gamma, std::string gauge){
+    // assign_RHQ_par(Impr, q, index);
+    Impr.q = q;
+    Impr.gauge = gauge;
+    Impr.index = dir_to_index(dir);
+    Impr.gamma = GammaAlg_from_str(gamma);
+    
+    Impr.t = t;
+    Impr.mom = make_twist_par(twist);
+}
+
+template <typename TRHQ>
+void assign_RHQSeq_III_IV_mom_par(TRHQ &Impr, std::string q, int t, std::array<int, 4> mom, std::string dir, std::string gamma5, std::string gauge){
     // assign_RHQ_par(Impr, q, index);
     Impr.q = q;
     Impr.gauge = gauge;
@@ -135,9 +147,22 @@ void assign_RHQSeq_III_IV_par(TRHQ &Impr, std::string q, int t, std::array<int, 
     Impr.mom = make_mom_par(mom);
 }
 
+
+template <typename TRHQ>
+void assign_RHQSeq_IV_twist_par(TRHQ &Impr, std::string q, int t, std::array<double, 4> twist, std::string dir, std::string gamma5, std::string gauge){
+    // assign_RHQ_par(Impr, q, index);
+    Impr.q = q;
+    Impr.gauge = gauge;
+    Impr.index = dir_to_index(dir);
+    Impr.gamma5 = GammaAlg_from_str(gamma5);
+    
+    Impr.t = t;
+    Impr.mom = make_twist_par(twist);
+}
+
 // make the name for the Seq RHQ module
 template <typename TRHQ>
-std::string make_RHQSeq_I_II_name(TRHQ Impr, std::string incipit, std::string gamma){
+std::string make_RHQSeq_I_II_mom_name(TRHQ Impr, std::string incipit, std::string gamma){
     std::vector<std::string> directions = {"X", "Y", "Z", "T"};
     
     std::string mom_name = "";
@@ -152,15 +177,48 @@ std::string make_RHQSeq_I_II_name(TRHQ Impr, std::string incipit, std::string ga
     return Impr_name;
 }
 
+template <typename TRHQ>
+std::string make_RHQSeq_II_twist_name(TRHQ Impr, std::string incipit, std::string gamma){
+    std::vector<std::string> directions = {"X", "Y", "Z", "T"};
+    
+    std::string mom_name = "";
+    std::string mom_str = space_to_underscore(Impr.mom);
+    if (mom_str != "0_0_0_0" || mom_str=="0.0_0.0_0.0_0.0")
+        mom_name = "_twistOnImpr_" + mom_str;
+
+    std::string Impr_name = 
+        incipit + directions[std::stoi(Impr.index)] + gamma 
+        + mom_name + "_" 
+        + remove_str(Impr.q, "quark_");
+    return Impr_name;
+}
+
+
 // make the name for the Seq RHQ module
 template <typename TRHQ>
-std::string make_RHQSeq_III_IV_name(TRHQ Impr, std::string incipit, std::string gamma5){
+std::string make_RHQSeq_III_IV_mom_name(TRHQ Impr, std::string incipit, std::string gamma5){
     std::vector<std::string> directions = {"X", "Y", "Z", "T"};
     
     std::string mom_name = "";
     std::string mom_str = space_to_underscore(Impr.mom);
     if (mom_str != "0_0_0_0" || mom_str=="0.0_0.0_0.0_0.0")
         mom_name = "_mom_" + mom_str;
+
+    std::string Impr_name = 
+        incipit + directions[std::stoi(Impr.index)] + gamma5
+        + mom_name + "_" 
+        + remove_str(Impr.q, "quark_");
+    return Impr_name;
+}
+
+template <typename TRHQ>
+std::string make_RHQSeq_IV_twist_name(TRHQ Impr, std::string incipit, std::string gamma5){
+    std::vector<std::string> directions = {"X", "Y", "Z", "T"};
+    
+    std::string mom_name = "";
+    std::string mom_str = space_to_underscore(Impr.mom);
+    if (mom_str != "0_0_0_0" || mom_str=="0.0_0.0_0.0_0.0")
+        mom_name = "_twistOnImpr_" + mom_str;
 
     std::string Impr_name = 
         incipit + directions[std::stoi(Impr.index)] + gamma5
@@ -176,32 +234,62 @@ std::string make_RHQSeq_III_IV_name(TRHQ Impr, std::string incipit, std::string 
 
 std::string make_RHQSeqSourceI(Application &application, std::string q, int t, std::array<int,4> mom, std::string dir, std::string gamma, std::string gauge="gauge"){
     MRHQ::RHQSeqSourceI::Par ImprI;    
-    assign_RHQSeq_I_II_par(ImprI, q, t, mom, dir, gamma, gauge);
-    std::string ImprI_name = make_RHQSeq_I_II_name(ImprI, "source_seq_ImprI", gamma);
+    assign_RHQSeq_I_II_mom_par(ImprI, q, t, mom, dir, gamma, gauge);
+    std::string ImprI_name = make_RHQSeq_I_II_mom_name(ImprI, "source_seq_ImprI", gamma);
     application.createModule<MRHQ::RHQSeqSourceI>(ImprI_name, ImprI);
     return ImprI_name;
 }
 
-std::string make_RHQSeqSourceII(Application &application, std::string q, int t, std::array<int,4> mom, std::string dir, std::string gamma, std::string gauge="gauge"){
-    MRHQ::RHQSeqSourceII::Par ImprII;    
-    assign_RHQSeq_I_II_par(ImprII, q, t, mom, dir, gamma, gauge);
-    std::string ImprII_name = make_RHQSeq_I_II_name(ImprII, "source_seq_ImprII", gamma);
+// for mom
+std::string make_RHQSeqSourceII(Application &application, std::string q, int t, std::array<int,4> mom, std::string dir, std::string gamma, std::string momType, std::string gauge="gauge"){  
+    assert(momType=="Sink");
+    MRHQ::RHQSeqSourceII::Par ImprII; 
+    assign_RHQSeq_I_II_mom_par(ImprII, q, t, mom, dir, gamma, gauge);
+    ImprII.momType = strToVec<OpIIMomType>(momType)[0];
+    std::string ImprII_name = make_RHQSeq_I_II_mom_name(ImprII, "source_seq_ImprII", gamma);
+    
     application.createModule<MRHQ::RHQSeqSourceII>(ImprII_name, ImprII);
     return ImprII_name;
 }
 
+//for twist
+std::string make_RHQSeqSourceII(Application &application, std::string q, int t, std::array<double,4> mom, std::string dir, std::string gamma, std::string momType, std::string gauge="gauge"){
+    assert(momType=="Twist");
+    MRHQ::RHQSeqSourceII::Par ImprII; 
+    assign_RHQSeq_II_twist_par(ImprII, q, t, mom, dir, gamma, gauge);
+    ImprII.momType = strToVec<OpIIMomType>(momType)[0];
+    std::string ImprII_name = make_RHQSeq_II_twist_name(ImprII, "source_seq_ImprII", gamma);
+    application.createModule<MRHQ::RHQSeqSourceII>(ImprII_name, ImprII);
+    return ImprII_name;
+}
+
+
 std::string make_RHQSeqSourceIII(Application &application, std::string q, int t, std::array<int,4> mom, std::string dir, std::string gamma5, std::string gauge="gauge"){
     MRHQ::RHQSeqSourceIII::Par ImprIII;    
-    assign_RHQSeq_III_IV_par(ImprIII, q, t, mom, dir, gamma5, gauge);
-    std::string ImprIII_name = make_RHQSeq_III_IV_name(ImprIII, "source_seq_ImprIII", gamma5);
+    assign_RHQSeq_III_IV_mom_par(ImprIII, q, t, mom, dir, gamma5, gauge);
+    std::string ImprIII_name = make_RHQSeq_III_IV_mom_name(ImprIII, "source_seq_ImprIII", gamma5);
     application.createModule<MRHQ::RHQSeqSourceIII>(ImprIII_name, ImprIII);
     return ImprIII_name;
 }
 
-std::string make_RHQSeqSourceIV(Application &application, std::string q, int t, std::array<int,4> mom, std::string dir, std::string gamma5, std::string gauge="gauge"){
-    MRHQ::RHQSeqSourceIV::Par ImprIV;    
-    assign_RHQSeq_III_IV_par(ImprIV, q, t, mom, dir, gamma5, gauge);
-    std::string ImprIV_name = make_RHQSeq_III_IV_name(ImprIV, "source_seq_ImprIV", gamma5);
+// mom
+std::string make_RHQSeqSourceIV(Application &application, std::string q, int t, std::array<int,4> mom, std::string dir, std::string gamma5, std::string momType, std::string gauge="gauge"){
+    assert(momType=="Sink");
+    MRHQ::RHQSeqSourceIV::Par ImprIV;  
+    assign_RHQSeq_III_IV_mom_par(ImprIV, q, t, mom, dir, gamma5, gauge);
+    ImprIV.momType = strToVec<OpIVMomType>(momType)[0];
+    std::string ImprIV_name = make_RHQSeq_III_IV_mom_name(ImprIV, "source_seq_ImprIV", gamma5);
+    application.createModule<MRHQ::RHQSeqSourceIV>(ImprIV_name, ImprIV);
+    return ImprIV_name;
+}
+
+// twist
+std::string make_RHQSeqSourceIV(Application &application, std::string q, int t, std::array<double,4> mom, std::string dir, std::string gamma5, std::string momType, std::string gauge="gauge"){
+    assert(momType=="Twist");
+    MRHQ::RHQSeqSourceIV::Par ImprIV;  
+    assign_RHQSeq_IV_twist_par(ImprIV, q, t, mom, dir, gamma5, gauge);
+    ImprIV.momType = strToVec<OpIVMomType>(momType)[0];
+    std::string ImprIV_name = make_RHQSeq_IV_twist_name(ImprIV, "source_seq_ImprIV", gamma5);
     application.createModule<MRHQ::RHQSeqSourceIV>(ImprIV_name, ImprIV);
     return ImprIV_name;
 }
