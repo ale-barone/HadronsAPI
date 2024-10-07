@@ -13,7 +13,7 @@ using namespace API;
 
 // runID
 // NB runid with the config number determine the Z2 source
-std::string runid = "testRHQTwist";
+std::string runid = "template";
 
 // time slices
 int tsrc = 0;
@@ -264,17 +264,24 @@ int main(int argc, char *argv[])
 
     // sequential sources
     std::vector<std::string> source_seq_ImprI_b;
-    std::vector<std::string> source_seq_ImprII_b;
+    std::vector<std::vector<std::string>> source_seq_ImprII_b;
     std::vector<std::string> source_seq_ImprIII_b;
-    std::vector<std::string> source_seq_ImprIV_b;
+    std::vector<std::vector<std::string>> source_seq_ImprIV_b;
     for (int i=0; i<NImpr; i++){
       std::string dir = RHQImpr[i][0];
       std::string gamma = RHQImpr[i][1];
     
       source_seq_ImprI_b.push_back(ARHQ::make_RHQSeqSourceI(application, quark_b, t1, mom0, dir, gamma));
-      source_seq_ImprII_b.push_back(ARHQ::make_RHQSeqSourceII(application, quark_b, t1, mom0, dir, gamma));
       source_seq_ImprIII_b.push_back(ARHQ::make_RHQSeqSourceIII(application, quark_b, t1, mom0, dir, gamma));
-      source_seq_ImprIV_b.push_back(ARHQ::make_RHQSeqSourceIV(application, quark_b, t1, mom0, dir, gamma));
+
+      std::vector<std::string> source_seq_ImprII_b_i;
+      std::vector<std::string> source_seq_ImprIV_b_i;
+      for (int tw=0; tw<Ntwists; tw++){
+        source_seq_ImprII_b_i.push_back(ARHQ::make_RHQSeqSourceII(application, quark_b, t1, twists[tw], dir, gamma, "Twist"));
+        source_seq_ImprIV_b_i.push_back(ARHQ::make_RHQSeqSourceIV(application, quark_b, t1, twists[tw], dir, gamma, "Twist"));
+      }
+      source_seq_ImprII_b.push_back(source_seq_ImprII_b_i);
+      source_seq_ImprIV_b.push_back(source_seq_ImprIV_b_i);
     }
 
     // IMPR propagators
@@ -289,9 +296,9 @@ int main(int argc, char *argv[])
       std::vector<std::string> quark_c_ImprIV_b_i;
       for (int tw=0; tw<Ntwists; tw++){ 
         quark_c_ImprI_b_i.push_back(AFermion::make_seq_propagator(application, "c", source_seq_ImprI_b[i], solver_c[tw]));
-        quark_c_ImprII_b_i.push_back(AFermion::make_seq_propagator(application, "c", source_seq_ImprII_b[i], solver_c[tw]));
+        quark_c_ImprII_b_i.push_back(AFermion::make_seq_propagator(application, "c", source_seq_ImprII_b[i][tw], solver_c[tw]));
         quark_c_ImprIII_b_i.push_back(AFermion::make_seq_propagator(application, "c", source_seq_ImprIII_b[i], solver_c[tw]));
-        quark_c_ImprIV_b_i.push_back(AFermion::make_seq_propagator(application, "c", source_seq_ImprIV_b[i], solver_c[tw]));
+        quark_c_ImprIV_b_i.push_back(AFermion::make_seq_propagator(application, "c", source_seq_ImprIV_b[i][tw], solver_c[tw]));
       }
       quark_c_ImprI_b.push_back(quark_c_ImprI_b_i);
       quark_c_ImprII_b.push_back(quark_c_ImprII_b_i);
