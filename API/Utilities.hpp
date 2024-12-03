@@ -168,6 +168,17 @@ std::string underscore_to_space(std::string text){
 }
 
 
+std::string double_to_string(double num){
+  // Create an output string stream
+  std::ostringstream streamObj;
+  // Set fixed-point Notation and precision
+  streamObj << std::fixed << std::setprecision(num_decimals(num)) << num;
+  // Get string from output string stream
+  std::string out = streamObj.str();
+  
+  return out;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // MOMENTUM (FROM SINK)
 ////////////////////////////////////////////////////////////////////////////////
