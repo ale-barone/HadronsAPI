@@ -63,7 +63,7 @@ std::string make_z2_source(Application &application, int tA, int tB){
 // }
 
 
-// SEQ SOURCE
+// SEQ SOURCE ~ improvement coefficents (!)
 std::string make_seq_source(Application &application, std::string q, int t, std::string gamma, std::array<int, 4> mom){
     MSource::SeqGamma::Par source_seq;
 
@@ -83,6 +83,7 @@ std::string make_seq_source(Application &application, std::string q, int t, std:
 
     std::string source_seq_name = "source_seq_"
                                   + gamma 
+                                  + "_tins" + std::to_string(t)
                                   + mom_name + "_"
                                   + remove_str(source_seq.q, "quark_");
     application.createModule<MSource::SeqGamma>(source_seq_name, source_seq);
