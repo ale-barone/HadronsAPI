@@ -12,7 +12,7 @@ using namespace Hadrons;
 using namespace API;
 
 ////////////////////////////////////////////////////////////////////////////////
-// GENERAL SETUP
+// GENERAL SETUP (FOR EACH ENSEMBLE)
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -21,17 +21,20 @@ int TSRC = @tsrc@;
 
 
 // run ID
-std::string RUNID = "inclusive"; // do we need to coordinate with Tobi?
+std::string RUNID = ENSID; // do we need to coordinate with Tobi?
 // file name
-std::string BASE_NAME = "inclusive_tsrc" + std::to_string(TSRC) + "_" + ENSID; 
-std::string OUTPUT_FILE = BASE_NAME + ".template.xml";
+std::string OUTPUT_FILE =  "inclusive_btoc_" + ENSID + "_tsrc" + std::to_string(TSRC) + ".template.xml";
 // extra info
 std::string extra_info = "";
 // folder name
-std::string folder_output = "../../data/" + ENSID + "/output_" + BASE_NAME;
+std::string folder_output = "../../data/" + ENSID + "/output_inclusive_btoc/tsrc" + std::to_string(TSRC);
 
 
 // GLOBAL VARIABLE ENSEMBLE SPECIFIC THAT HAS TO BE DEFINE IN  <template/@ensID@.hpp>
+
+int LLAT = ENS::LLAT;
+int TLAT = ENS::TLAT;
+double AINV = ENS::AINV;
 
 // Current insertion times
 std::vector<int> TSNKS = ENS::TSNKS;
@@ -50,18 +53,56 @@ std::vector<double> WIDTHS_l = ENS::WIDTHS_l;
 std::vector<double> WIDTHS_s = ENS::WIDTHS_s;
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MOMENTA / TWISTS
+////////////////////////////////////////////////////////////////////////////////
+
+// zero momentum for sink
+std::array<int, 4> MOM0 = {0, 0, 0, 0};
+
+// zero twists
+std::array<double, 4> TW0 = {.0, .0, .0, .0};
+
+// list of physical 3-momentum q^2 we want to induce in GeV^2
+std::vector<double> Q2_VECTOR = {0, 0.33, 0.66, 1, 2, 3, 4, 5};
+
+// functions that make the twist automatically for each ensemble with
+// q = 2pi/L * (tw, tw, tw)
+// q^2 = (2pi)^2 / L^2 * 3*tw^2
+// tw = L / (2pi) * sqrt(q^2/3)
+std::array<double, 4> make_twist_array(double q2){
+  double q2_lattice_units = q2 / std::pow(AINV, 2);
+  double tw = LLAT / (2*M_PI) * sqrt(q2_lattice_units/3) ;
+  std::cout<< LLAT << " MPI=" <<M_PI << " tw=" << tw << std::endl;
+  std::array<double, 4> out = {tw, tw, tw, 0}; 
+  return out;
+}
+
+std::vector<std::array<double, 4>> make_twists(){
+  std::vector<std::array<double, 4>> out;
+  for (double q2 : Q2_VECTOR){
+    out.push_back(make_twist_array(q2));
+  }
+  return out;
+}
+
+// twists
+std::vector<std::array<double, 4>> TWISTS = make_twists();
+// number of twists
+int NTWISTS = TWISTS.size();
+// small twists (for 3pt) - made to be same size as twists
+int NTWISTS_small = 4; // for Q2_VECOTR = {0, 0.33, 0.66, 1}
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// GAMMAS INSERTION AND IMPROVEMENTS
+////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-// GAMMAS //////////////////////////////////////////////////////////////////////
-
-// std::vector<std::string> Gamma5 = {"Gamma5"};
+// Gammas for 2pt (D(s) and D(s)*)
 std::vector<std::string> GAMMAS_Ds = {"Gamma5", "GammaX", "GammaY", "GammaZ"};
 
+// gammas for current insertion in 4pt
 std::vector<std::string> GAMMAS = {
   "GammaX",
   "GammaY",
@@ -72,11 +113,10 @@ std::vector<std::string> GAMMAS = {
   "GammaZGamma5",
   "GammaTGamma5"
 };
+// number of gammas
 int NGAMMAS = GAMMAS.size();
 
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-// I - Create object containing directions and gammas for improvements
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+// combinations for improvement terms
 std::vector<std::array<std::string, 2>> RHQImpr = {
   {"X", "Identity"},
   {"Y", "Identity"},
@@ -89,31 +129,13 @@ std::vector<std::array<std::string, 2>> RHQImpr = {
 };
 int NImpr = RHQImpr.size();
 
-// MOMENTA /////////////////////////////////////////////////////////////////////
-
-// momenta are induced only through twisting, hence I keep only the 0_0_0_0 momentum
-std::array<int, 4> MOM0 = {0, 0, 0, 0};
-
-// twists
-std::array<double, 4> TW0 = {.0, .0, .0, .0};
-std::vector<std::array<double, 4>> TWISTS = {
-    {.0, .0, .0, .0},
-    {-0.63, -0.63, -0.63, .0},
-    {-0.89, -0.89, -0.89, .0},
-    {-1.10, -1.10, -1.10, .0},
-    {-1.55, -1.55, -1.55, .0},
-    {-1.90, -1.90, -1.90, .0},
-    {-2.19, -2.19, -2.19, .0},
-    {-2.45, -2.45, -2.45, .0},
-    {-2.69, -2.69, -2.69, .0},
-    {-2.90, -2.90, -2.90, .0}
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 // CUSTOM FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
-
+// to avoid recomputing the same smeared source in case we want to use the same
+// smearing for light and strange
 std::vector<double> concatenate_widths(std::vector<double> v1, std::vector<double> v2){
   std::vector<double> out = v1;
   out.insert(out.end(), v2.begin(), v2.end());
@@ -125,13 +147,12 @@ std::vector<double> concatenate_widths(std::vector<double> v1, std::vector<doubl
 // shif time insertion (tsnk or t1) according to source position TSRC
 int shift_tins(int tins){
   // compact if -> variable = (condition) ? expressionTrue : expressionFalse;
-  int out = (tins + TSRC < ENS::TLAT) ? tins + TSRC : (tins + TSRC) - ENS::TLAT;
+  int out = (tins + TSRC < TLAT) ? tins + TSRC : (tins + TSRC) - TLAT;
   return out;
 }
 
 // smeared source (just template)
-std::string make_sm_source(Application &application, std::string source, double width)
-{
+std::string make_sm_source(Application &application, std::string source, double width){
   std::string source_sm_name =
       "source_sm" + remove_str(source, "source") + "_w" + double_to_string(width);
 
@@ -147,8 +168,7 @@ std::string make_sm_source(Application &application, std::string source, double 
 
 
 // smeared propagator (just template)
-std::string make_sm_propagator(Application &application, std::string name, std::string source, double width)
-{
+std::string make_sm_propagator(Application &application, std::string name, std::string source, double width){
   MSource::JacobiSmear::Par source_sm;
   source_sm.gauge = "gauge";
   source_sm.width = width;
@@ -173,26 +193,36 @@ std::string make_sm_propagator(Application &application, std::string name, std::
   return source_sm_name;
 }
 
+// folder structure for easier mapping (especially in 4pt functions)
+//  cm
+//  |_twist
+//    |_tree
+//    |_impr  
+// each of tree/impr will contain all configs
+
+std::string make_folder_structure_4pt_tree(double cm, std::array<double, 4> twist){
+  std::string out = folder_output + "/4pt/cm" + double_to_string(cm) + "/tw" + make_twist_name(twist) + "/tree";
+  return out;
+}
+std::string make_folder_structure_4pt_impr(double cm, std::array<double, 4> twist){
+  std::string out = folder_output + "/4pt/cm" + double_to_string(cm) + "/tw" + make_twist_name(twist) + "/impr";
+  return out;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // MAIN
 ////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[])
 {
-  // twists
-  int NTWISTS = TWISTS.size();
-  // small twists (for 3pt) - made to be same size as twists
-  int NTWISTS_small = NTWISTS;
-  // int Ntwists_small = 1 + 2 * 3; // zero plus the 3 smaller for both signs
-
-  // initialise Grid /////////////////////////////////////////////////////////
+  // initialise Grid ///////////////////////////////////////////////////////////
   Grid_init(&argc, &argv);
 
-  // initialise application //////////////////////////////////////////////////
+  // initialise application ////////////////////////////////////////////////////
 
   Application application;
   Application::GlobalPar globalPar;
-  LOG(Message) << "======== XML generation with TSRC=" + std::to_string(TSRC) + "for ENS=" + ENSID + "========" << std::endl;
+  LOG(Message) << "======== XML generation with TSRC=" + std::to_string(TSRC) + " for ENS=" + ENSID + "========" << std::endl;
 
   // global initialisation
   // global parameters
@@ -203,54 +233,64 @@ int main(int argc, char *argv[])
   globalPar.scheduler.schedulerType = "naive";
   application.setPar(globalPar);
 
-  // create modules //////////////////////////////////////////////////////////
+  // create modules ////////////////////////////////////////////////////////////
   
 
-  ////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // ACTIONS AND SOLVERS
-  ////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+  LOG(Message) << "Making actions and solvers" << std::endl;
 
   // gauge
   ENS::make_gauge(application);
 
   // light action
   std::string action_l = ENS::make_action_l(application);
-  std::string solver_l = ASolver::make_solver_CG(application, action_l, 8000, 1e-10);
+  std::string solver_l = ASolver::make_solver_CG(application, action_l, 8000, 1e-8);
 
   // strange
   std::string action_s = ENS::make_action_s(application);
-  std::string solver_s = ASolver::make_solver_CG(application, action_s, 8000, 1e-15);
+  std::string solver_s = ASolver::make_solver_CG(application, action_s, 8000, 1e-8);
 
   // bottom
   std::string action_b = ENS::make_action_b(application);
-  std::string solver_b = ASolver::make_solver_CG(application, action_b, 1000, 1e-45);
+  std::string solver_b = ASolver::make_solver_CG(application, action_b, 1000, 1e-40);
 
-  // charm, 2D vector  with structure [mc][tw]
-  std::vector<std::vector<std::string>> solver_c_cm_tw(CMASS.size());
-  for (int cmass = 0; cmass < CMASS.size(); cmass++)
-  {
+
+  // charm, 2D vector  with structure [cm][tw]
+  std::vector<std::vector<std::string>> solver_c_cm_tw;
+  for (int cm=0; cm<CMASS.size(); cm++){
+    LOG(Message) << cm << " " << CMASS[cm] << std::endl;
+    LOG(Message) << CMASS << std::endl;
     std::vector<std::string> solver_c_tw;
-    for (int tw = 0; tw < NTWISTS; tw++) // Loop over twist
-    {
-      // std::string action_c = AAction::make_action_c(application, CMASS[cmass], TWISTS[tw]);
-      std::string action_c = ENS::make_action_c(application, CMASS[cmass], TWISTS[tw]);
-      solver_c_tw.push_back(ASolver::make_solver_CG(application, action_c, 8000, 1e-20));
+    for (int tw=0; tw<NTWISTS; tw++){
+      LOG(Message) << tw << " " << TWISTS[tw][0] << std::endl;
+      std::string action_c = ENS::make_action_c(application, CMASS[cm], TWISTS[tw]);
+      solver_c_tw.push_back(ASolver::make_solver_CG(application, action_c, 8000, 1e-12));
     }
-    solver_c_cm_tw[cmass] = solver_c_tw;
+    solver_c_cm_tw.push_back(solver_c_tw);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // SOURCE AND SINK
-  ////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  LOG(Message) << "Making sources and sinks" << std::endl;
 
   // sink
   std::string sink = ASink::make_sink(application, MOM0);
-  // z2 source
-  std::string source_z2 = ASource::make_z2_source(application, TSRC, TSRC);
 
-  //========================================================================//
+  // z2 source
+  std::string source_z2 = "Z2_t0" + std::to_string(TSRC) + "_p+0_+0_+0";
+  MSource::Z2::Par source_z2_module;
+  source_z2_module.tA = TSRC;
+  source_z2_module.tB = TSRC;
+  application.createModule<MSource::Z2>(source_z2, source_z2_module);
+
+
+  //============================================================================
   // Loop over smearing types and widths for both s and l
-  //========================================================================//
+  //============================================================================
 
   // smeared sources for s
   std::vector<std::string> sources_sm_l;
@@ -263,22 +303,17 @@ int main(int argc, char *argv[])
       sources_sm_s.push_back(source_sm_w);
   }
 
+  //////////////////////////////////////////////////////////////////////////////
+  // PROPAGATORS AND 2PT CONTRACTIONS
+  //////////////////////////////////////////////////////////////////////////////
+  LOG(Message) << "Making 2pt contractions" << std::endl;
+
   // quark_b
   std::string quark_b = AFermion::make_propagator(application, "b", source_z2, solver_b);
-
-
-
-  ////////////////////////////////////////////////////////////////////////////
-  // PROPAGATORS AND 2PT CONTRACTIONS
-  ////////////////////////////////////////////////////////////////////////////
-
- 
-
 
   //========================================================================//
   // Loop over stange and light quark SPECTATORS
   //========================================================================//
-
 
   
   std::vector<std::string> quark_sNl;
@@ -319,14 +354,14 @@ int main(int argc, char *argv[])
       quark_spec_SS_sm.push_back(make_sm_propagator(application, spectator_quark + "_SS", quark_spec_LS_sm[w], widths[w]));
     }
 
-    // Bs - Ahmed - loop over strange quarks and keep b-quark unsmeared.
-    AContraction::make_2pt_contraction(application, quark_b, quark_spec, {"Gamma5", "Gamma5"}, sink, folder_output, extra_info);
+    //========================================================================//
+    // B(s) for all smearing for all combinations
+    //========================================================================//
 
-    //========================================================================//
-    // Loop over smearing types and widths - keep b unsmeared while s is smeared
-    //========================================================================//
-    for (int w = 0; w < widths.size(); ++w)
-    {
+    // unsmeared
+    AContraction::make_2pt_contraction(application, quark_b, quark_spec, {"Gamma5", "Gamma5"}, sink, folder_output, extra_info);
+    // smeared
+    for (int w = 0; w < widths.size(); ++w){
       AContraction::make_2pt_contraction(application, quark_b, quark_spec_LS_sm[w], {"Gamma5", "Gamma5"}, sink, folder_output, extra_info);
       AContraction::make_2pt_contraction(application, quark_b, quark_spec_SL_sm[w], {"Gamma5", "Gamma5"}, sink, folder_output, extra_info);
       AContraction::make_2pt_contraction(application, quark_b, quark_spec_SS_sm[w], {"Gamma5", "Gamma5"}, sink, folder_output, extra_info);
@@ -339,39 +374,36 @@ int main(int argc, char *argv[])
     std::vector<std::vector<std::string>> quark_b_spec_SS_tsnk_w;
     std::vector<std::string> quark_b_spec_tsnk;
     std::vector<std::string> source_seq_spec_tsnk;
-    for (int i = 0; i < TSNKS.size(); ++i)
+    for (int i=0; i<TSNKS.size(); i++)
     {
       int tsnk = shift_tins(TSNKS[i]);
 
-      // sequential source
-      // std::string source_seq_spec; // = ASource::make_seq_source(application, quark_spec, tsnk, "Gamma5", MOM0);
-      //========================================================================//
-      // Loop over smearing types and widths
-      //========================================================================//
+      // sequential sources on top of quark_spec
+      // unsmeared
+      std::string source_seq_spec = ASource::make_seq_source(application, quark_spec, tsnk, "Gamma5", MOM0);
+      source_seq_spec_tsnk.push_back(source_seq_spec);
+      // smeared
       std::vector<std::string> source_seq_spec_LS_w;
       std::vector<std::string> source_seq_spec_SL_w;
       std::vector<std::string> source_seq_spec_SS_w;
-      for (int w = 0; w < widths.size(); ++w)
-      {
+      for (int w=0; w<widths.size(); w++){
         source_seq_spec_LS_w.push_back(ASource::make_seq_source(application, quark_spec_LS_sm[w], tsnk, "Gamma5", MOM0));
         source_seq_spec_SL_w.push_back(ASource::make_seq_source(application, quark_spec_SL_sm[w], tsnk, "Gamma5", MOM0));
         source_seq_spec_SS_w.push_back(ASource::make_seq_source(application, quark_spec_SS_sm[w], tsnk, "Gamma5", MOM0));
       }
 
-      // sequential source:
-      std::string source_seq_spec = ASource::make_seq_source(application, quark_spec, tsnk, "Gamma5", MOM0);
-      source_seq_spec_tsnk.push_back(source_seq_spec);
 
-      // sequential propagator quark_b_s
+      // sequential propagator quark_b_spec
+      // unsmeared
       std::string quark_b_spec = AFermion::make_seq_propagator(application, "b", source_seq_spec, solver_b);
-      // Bs->Bs
+      // B(s)->B(s) unsmeared only, (we need only GammaT(Gamma5) for ZV(A) but we contract everything)
       AContraction::make_3pt_contraction(application, quark_b, quark_b_spec, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
       //========================================================================//
       // Loop over smearing types and widths
       //========================================================================//
       std::vector<std::string> quark_b_spec_SS_w;
       std::vector<std::string> quark_b_spec_SL_w;
-      for (int w = 0; w < widths.size(); w++){
+      for (int w=0; w<widths.size(); w++){
         quark_b_spec_SS_w.push_back(AFermion::make_seq_propagator(application, "b", source_seq_spec_SS_w[w], solver_b));
         quark_b_spec_SL_w.push_back(AFermion::make_seq_propagator(application, "b", source_seq_spec_SL_w[w], solver_b));
       }
@@ -383,25 +415,27 @@ int main(int argc, char *argv[])
     quark_b_sNl_SL_tsnk_w.push_back(quark_b_spec_SL_tsnk_w);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // CHARM LOOP FOR 2PT/3PT
-  ////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
-  for (int mc=0; mc<CMASS.size(); mc++){
-    for (int tw = 0; tw < NTWISTS_small; tw++){
-      std::string quark_c_mc_tw = AFermion::make_propagator(application, "c_m" + double_to_string(CMASS[mc]), source_z2, solver_c_cm_tw[mc][tw]);
+  LOG(Message) << "Making 2pt/3pt contractions for charms" << std::endl;
+
+  for (int cm=0; cm<CMASS.size(); cm++){
+    for (int tw=0; tw<NTWISTS_small; tw++){
+      std::string quark_c_cm_tw = AFermion::make_propagator(application, "c_m" + double_to_string(CMASS[cm]), source_z2, solver_c_cm_tw[cm][tw]);
       
       // contractions
       for (int spec=0; spec<SPECTATORS.size(); spec++){
-        // 2pt Ds(*)
-        AContraction::make_2pt_contraction(application, quark_c_mc_tw, quark_sNl[spec], {GAMMAS_Ds, GAMMAS_Ds}, sink, folder_output, extra_info);
+        // 2pt D(s)(*)
+        AContraction::make_2pt_contraction(application, quark_c_cm_tw, quark_sNl[spec], {GAMMAS_Ds, GAMMAS_Ds}, sink, folder_output, extra_info);
         // 3pt
-        // Ds->Ds //FIXME 
+        // Ds->Ds  
         if (TWISTS[tw]==TW0){
           for (int i = 0; i < TSNKS.size(); ++i){
             int tsnk = shift_tins(TSNKS[i]);
-            std::string quark_c_spec_mc_TW0 = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[mc]), source_seq_sNl[spec][i], solver_c_cm_tw[mc][tw]);
-            AContraction::make_3pt_contraction(application, quark_c_spec_mc_TW0, quark_c_mc_tw, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
+            std::string quark_c_spec_cm_TW0 = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cm]), source_seq_sNl[spec][i], solver_c_cm_tw[cm][tw]);
+            AContraction::make_3pt_contraction(application, quark_c_spec_cm_TW0, quark_c_cm_tw, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
           }
         }
         
@@ -414,13 +448,13 @@ int main(int argc, char *argv[])
         
         for (int i = 0; i < TSNKS.size(); ++i){
           for (int w=0; w<widths.size(); w++){
-            AContraction::make_3pt_contraction(application, quark_b_sNl_SL_tsnk_w[spec][i][w], quark_c_mc_tw, {GAMMAS, GAMMAS_Ds}, sink, folder_output, extra_info);
+            AContraction::make_3pt_contraction(application, quark_b_sNl_SL_tsnk_w[spec][i][w], quark_c_cm_tw, {GAMMAS, GAMMAS_Ds}, sink, folder_output, extra_info);
           }
         }      
       }
     }
     // Ds->Ds for tw=0
-    //quark_c_spec_Ds_cm_TW0 = AFermion::make_seq_propagator(application, "c_cm" + std::to_string(CMASS[cmass]).substr(0, 4), source_seq_spec, solver_c_cm_tw[cmass][0]);
+    //quark_c_spec_Ds_cm_TW0 = AFermion::make_seq_propagator(application, "c_cm" + std::to_string(CMASS[cm]).substr(0, 4), source_seq_spec, solver_c_cm_tw[cm][0]);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -431,6 +465,7 @@ int main(int argc, char *argv[])
   // Tree level
   // ========================================================================//
 
+  LOG(Message) << "Generating 4pt functions tree level+impr on t2" << std::endl;
 
   // source seq_b
   std::vector<std::vector<std::string>> source_seq_b;
@@ -501,19 +536,19 @@ int main(int argc, char *argv[])
 
   //for (int t1ins=0; t1ins<T1INS.size(); t1ins++){
   
-  for (int cmass = 0; cmass < CMASS.size(); cmass++){
+  for (int cm=0; cm<CMASS.size(); cm++){
     for (int tw=0; tw<NTWISTS; tw++){
       for (int t1ins=0; t1ins<T1INS.size(); t1ins++){
         for (unsigned int g=0; g<NGAMMAS; g++){
-          std::string quark_c_b_mc = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cmass]), source_seq_b[t1ins][g], solver_c_cm_tw[cmass][tw]);
+          std::string quark_c_b_cm = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cm]), source_seq_b[t1ins][g], solver_c_cm_tw[cm][tw]);
           
           std::vector<std::string> quarkImprII_c_b_i;
           std::vector<std::string> quarkImprIV_c_b_i;
           for (int i=0; i<NImpr; i++){
             std::string dir = RHQImpr[i][0];
             std::string gamma = RHQImpr[i][1];
-            quarkImprII_c_b_i.push_back(ARHQ::make_RHQInsertionII(application, quark_c_b_mc, dir, gamma, TWISTS[tw]));
-            quarkImprIV_c_b_i.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_b_mc, dir, gamma, TWISTS[tw]));
+            quarkImprII_c_b_i.push_back(ARHQ::make_RHQInsertionII(application, quark_c_b_cm, dir, gamma, TWISTS[tw]));
+            quarkImprIV_c_b_i.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_b_cm, dir, gamma, TWISTS[tw]));
           }
           for (int spec=0; spec<SPECTATORS.size(); spec++){
             // pick widths
@@ -524,13 +559,15 @@ int main(int argc, char *argv[])
               widths = WIDTHS_s;
             for (int ts=0; ts < TSNKS.size(); ts++){
               for (int w=0; w<widths.size(); w++){
-                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_b_mc, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
+                std::string folder_4pt_tree = make_folder_structure_4pt_tree(CMASS[cm], TWISTS[tw]);
+                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_tree, extra_info);
                 
+                std::string folder_4pt_impr = make_folder_structure_4pt_impr(CMASS[cm], TWISTS[tw]);
                 for (int i=0; i<NImpr; i++){
-                  AContraction::make_4pt_contraction(application, quarkImprI_b_spec_tsnk_w[i][spec][ts][w], quark_c_b_mc, {"Identity", "Gamma5"}, sink, folder_output, extra_info);
-                  AContraction::make_4pt_contraction(application, quarkImprIII_b_spec_tsnk_w[i][spec][ts][w], quark_c_b_mc, {"Identity", "Gamma5"}, sink, folder_output, extra_info);
-                  AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quarkImprII_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_output, extra_info);
-                  AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quarkImprIV_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_output, extra_info);
+                  AContraction::make_4pt_contraction(application, quarkImprI_b_spec_tsnk_w[i][spec][ts][w], quark_c_b_cm, {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  AContraction::make_4pt_contraction(application, quarkImprIII_b_spec_tsnk_w[i][spec][ts][w], quark_c_b_cm, {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quarkImprII_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quarkImprIV_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
                 }
               }
             }
@@ -543,6 +580,8 @@ int main(int argc, char *argv[])
   // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
   // IMPROVEMENT ON t1
   // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+
+  LOG(Message) << "Generating 4pt functions with impr on t1" << std::endl;
 
   for (int imp=0; imp<NImpr; imp++){
     std::string dir = RHQImpr[imp][0];
@@ -559,12 +598,13 @@ int main(int argc, char *argv[])
       for (int tw=0; tw<NTWISTS; tw++){
         std::string source_seq_ImprII_b_imp_t1_tw = ARHQ::make_RHQSeqSourceII(application, quark_b, t1, TWISTS[tw], dir, gamma, "Twist");
         std::string source_seq_ImprIV_b_imp_t1_tw = ARHQ::make_RHQSeqSourceIV(application, quark_b, t1, TWISTS[tw], dir, gamma, "Twist");
-        for (int mc=0; mc<CMASS.size(); mc++){      
-          std::string quark_c_ImprI_b_mc = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[mc]) +"_t1"+std::to_string(t1), source_seq_ImprI_b_imp_t1, solver_c_cm_tw[mc][tw]);          
-          std::string quark_c_ImprII_b_mc = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[mc])+"_t1"+std::to_string(t1), source_seq_ImprII_b_imp_t1_tw, solver_c_cm_tw[mc][tw]);
-          std::string quark_c_ImprIII_b_mc = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[mc])+"_t1"+std::to_string(t1), source_seq_ImprIII_b_imp_t1, solver_c_cm_tw[mc][tw]);
-          std::string quark_c_ImprIV_b_mc = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[mc])+"_t1"+std::to_string(t1), source_seq_ImprIV_b_imp_t1_tw, solver_c_cm_tw[mc][tw]);
+        for (int cm=0; cm<CMASS.size(); cm++){      
+          std::string quark_c_ImprI_b_cm = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cm]) +"_t1"+std::to_string(t1), source_seq_ImprI_b_imp_t1, solver_c_cm_tw[cm][tw]);          
+          std::string quark_c_ImprII_b_cm = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cm])+"_t1"+std::to_string(t1), source_seq_ImprII_b_imp_t1_tw, solver_c_cm_tw[cm][tw]);
+          std::string quark_c_ImprIII_b_cm = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cm])+"_t1"+std::to_string(t1), source_seq_ImprIII_b_imp_t1, solver_c_cm_tw[cm][tw]);
+          std::string quark_c_ImprIV_b_cm = AFermion::make_seq_propagator(application, "c_m" + double_to_string(CMASS[cm])+"_t1"+std::to_string(t1), source_seq_ImprIV_b_imp_t1_tw, solver_c_cm_tw[cm][tw]);
 
+          std::string folder_4pt_impr = make_folder_structure_4pt_impr(CMASS[cm], TWISTS[tw]);
           for (int spec=0; spec<SPECTATORS.size(); spec++){
             // pick widths
             std::vector<double> widths;
@@ -574,10 +614,10 @@ int main(int argc, char *argv[])
               widths = WIDTHS_s;
             for (int ts=0; ts < TSNKS.size(); ts++){
               for (int w=0; w<widths.size(); w++){
-                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprI_b_mc, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
-                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprII_b_mc, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
-                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprIII_b_mc, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
-                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprIV_b_mc, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
+                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprI_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_impr, extra_info);
+                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprII_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_impr, extra_info);
+                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprIII_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_impr, extra_info);
+                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_ImprIV_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_impr, extra_info);
               }
             }
           }
