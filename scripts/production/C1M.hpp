@@ -22,45 +22,6 @@ namespace ENS{
   std::vector<double> WIDTHS_s = {5.0, 6.0, 6.5};
 
 
-
-  std::vector<std::array<double, 4>> TWISTS = {
-      {.0, .0, .0, .0},
-      {-0.63, -0.63, -0.63, .0},
-      {-0.89, -0.89, -0.89, .0},
-      {-1.10, -1.10, -1.10, .0},
-      {-1.55, -1.55, -1.55, .0},
-      {-1.90, -1.90, -1.90, .0},
-      {-2.19, -2.19, -2.19, .0},
-      {-2.45, -2.45, -2.45, .0},
-      {-2.69, -2.69, -2.69, .0},
-      {-2.90, -2.90, -2.90, .0}
-  };
-
-  // std::array<double, 4> make_twist_array(double q2){
-  //   double q2_lattice_units = q2 / std::pow(AINV, 2);
-  //   double tw = LLAT / (2*M_PI) * sqrt(q2_lattice_units/3) ;
-
-  //   std::array<double, 4> out = {tw, tw, tw, 0}; 
-  //   return out;
-  // }
-
-
-
-  // std::vector<std::array<double, 4>> make_twists(){
-  //   std::vector<double> q2_vector = {0, 1, 2, 3, 4, 5};
-
-  //   std::vector<std::array<double, 4>> out;
-  //   for (double q2 : q2_vector){
-  //     out.push_back(make_twist_array(q2));
-  //   }
-  //   return out;
-  // }
-
-  // std::vector<std::array<double, 4>> TWISTS = make_twists();
-
-  
-
-
   // gauge field
   std::string GAUGE_NAME = "gauge";
   void make_gauge(Application &application){
