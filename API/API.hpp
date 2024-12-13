@@ -3,6 +3,5 @@
 #include "ASink.hpp"
 #include "AFermion.hpp"
 #include "AContraction.hpp"
-#include "AAction.hpp"
 #include "ASolver.hpp"
 #include "ARHQ.hpp"

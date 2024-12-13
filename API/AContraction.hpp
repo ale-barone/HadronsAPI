@@ -253,9 +253,9 @@ void make_4pt_contraction(Application &application,
                           std::array<std::string, 2> gammas,
                           std::string sink,
                           std::string folder_output,
-                          std::string extra_info){
+                          std::string extra_info=""){
 
-    make_contraction(application, "4pt", q1, q2, gammas, sink, folder_output + "/4pt", extra_info);
+    make_contraction(application, "4pt", q1, q2, gammas, sink, folder_output, extra_info);
 }
 
 // general 4pt contraction for list of gammas_src
@@ -267,7 +267,7 @@ void make_4pt_contraction(Application &application,
                           std::string folder_output,
                           std::string extra_info=""){
 
-    make_contraction(application, "4pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/4pt", extra_info);
+    make_contraction(application, "4pt", q1, q2, gammas_snk_src_list, sink, folder_output, extra_info);
 }
 
 // general 4pt contraction for list of gammas_src
@@ -279,7 +279,7 @@ void make_4pt_contraction_pair(Application &application,
                           std::string folder_output,
                           std::string extra_info=""){
 
-    make_contraction_pair(application, "4pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/4pt", extra_info);
+    make_contraction_pair(application, "4pt", q1, q2, gammas_snk_src_list, sink, folder_output, extra_info);
 }
 
 END_APIMODULE_NAMESPACE
