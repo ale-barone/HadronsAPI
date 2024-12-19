@@ -8,7 +8,8 @@ namespace ENS{
 
 
   // charm masses
-  std::vector<double> CMASS = {0.3, 0.35, 0.4}; 
+  //std::vector<double> CMASS = {0.30, 0.35, 0.40}; 
+  std::vector<std::string> CMASS = {"0.30", "0.35", "0.40"}; 
 
   // tsnk position
   std::vector<int> TSNKS = {18, 20, 22};
@@ -17,9 +18,9 @@ namespace ENS{
 
   // smearings
   // light
-  std::vector<double> WIDTHS_l = {5.5, 6.5, 7.86};
+  std::vector<std::string> WIDTHS_l = {"5.50", "6.50", "7.86"};
   // strange
-  std::vector<double> WIDTHS_s = {5.0, 6.0, 6.5};
+  std::vector<std::string> WIDTHS_s = {"5.00", "6.00", "6.50"};
 
 
   // gauge field
@@ -30,7 +31,6 @@ namespace ENS{
     application.createModule<MIO::LoadNersc>(GAUGE_NAME, gauge);
   }
 
-  // do we need eigenvalues??
   // light action
   std::string make_action_l(Application &application){
     std::string action_name = "action_l";
@@ -45,6 +45,18 @@ namespace ENS{
     application.createModule<MAction::ScaledDWF>(action_name, action_l);
     return action_name;
   }
+  // light solver
+  std::string make_solver_l(Application &application){
+    MSolver::RBPrecCG::Par solver;
+    solver.action = "action_l";
+    solver.maxIteration = 8000;
+    solver.residual = 1e-8;
+
+    std::string solver_name = "solver_l";
+    application.createModule<MSolver::RBPrecCG>(solver_name, solver);
+    return solver_name;
+  }
+
 
   // strange action
   std::string make_action_s(Application &application){
@@ -53,28 +65,51 @@ namespace ENS{
     action_s.gauge = GAUGE_NAME;
     action_s.Ls = 24;
     action_s.M5 = 1.8;
+    action_s.scale = 2;
     action_s.mass = 0.0362;
     action_s.boundary = "1 1 1 -1";
     action_s.twist = "0. 0. 0. 0.";
     application.createModule<MAction::ScaledDWF>(action_name, action_s);
     return action_name;
   }
+  // strange solver
+  std::string make_solver_s(Application &application){
+    MSolver::RBPrecCG::Par solver;
+    solver.action = "action_s";
+    solver.maxIteration = 8000;
+    solver.residual = 1e-8;
+
+    std::string solver_name = "solver_s";
+    application.createModule<MSolver::RBPrecCG>(solver_name, solver);
+    return solver_name;
+  }
 
 
   // charm action
-  std::string make_action_c(Application &application, double mass, std::array<double, 4> twist){
-      std::string action_name = "action_c_m" + double_to_string(mass) + "_tw_" + make_twist_name(twist);
+  std::string make_action_c(Application &application, std::string mass, std::array<double, 4> twist){
+      std::string action_name = "action_c_m" + mass + "_tw_" + make_twist_name(twist);
       MAction::ScaledDWF::Par action_c;
       action_c.gauge = GAUGE_NAME;
       action_c.Ls = 12;
       action_c.M5 = 1.6;
       action_c.scale = 2;
-      action_c.mass = mass;
+      action_c.mass = std::stod(mass);
       action_c.boundary = "1 1 1 -1";
       action_c.twist = make_twist_par(twist);
       application.createModule<MAction::ScaledDWF>(action_name, action_c);
       return action_name;
-  } 
+  }
+  // charm solver
+  std::string make_solver_c(Application &application, std::string action){
+    MSolver::RBPrecCG::Par solver;
+    solver.action = action;
+    solver.maxIteration = 8000;
+    solver.residual = 1e-12;
+
+    std::string solver_name = "solver_" + remove_str(action, "action_");
+    application.createModule<MSolver::RBPrecCG>(solver_name, solver);
+    return solver_name;
+  }
 
   // bottom action
   std::string make_action_b(Application &application){
@@ -93,6 +128,17 @@ namespace ENS{
     action_b.twist = "0. 0. 0. 0.";
     application.createModule<MAction::WilsonClover>(action_name, action_b);
     return action_name;
+  }
+  // bottom solver
+  std::string make_solver_b(Application &application){
+    MSolver::RBPrecCG::Par solver;
+    solver.action = "action_b";
+    solver.maxIteration = 8000;
+    solver.residual = 1e-40;
+
+    std::string solver_name = "solver_b";
+    application.createModule<MSolver::RBPrecCG>(solver_name, solver);
+    return solver_name;
   }
 
 }
