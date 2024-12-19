@@ -66,6 +66,26 @@ void assign_contraction_par_pair(TContraction &contraction,
     contraction.gammas = gammas;    
 }
 
+template <typename TContraction>
+void assign_contraction_par_pair(TContraction &contraction,
+                            std::string q1,
+                            std::string q2,
+                            std::vector<std::array<std::string, 2>> gammas_snk_src_vector_of_array,
+                            std::string sink){
+    contraction.q1 = q1;
+    contraction.q2 = q2;
+    contraction.sink = sink;
+
+    // gammas
+    std::string gammas = "";
+    for (int g=0; g<gammas_snk_src_vector_of_array.size(); g++){
+        std::string gamma_snk = gammas_snk_src_vector_of_array[g][0];
+        std::string gamma_src = gammas_snk_src_vector_of_array[g][1];
+        gammas += "(" + gamma_snk + " " + gamma_src + ")";
+    }
+    contraction.gammas = gammas;    
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,6 +180,23 @@ void make_contraction_pair(Application &application,
     application.createModule<MContraction::Meson>(contraction_name, contraction);
 }
 
+// general contraction for list of gammas_snk_src
+void make_contraction(Application &application,
+                      std::string prefix,
+                      std::string q1,
+                      std::string q2,
+                      std::vector<std::array<std::string, 2>> gammas_snk_src_vector_of_array,
+                      std::string sink,
+                      std::string folder_output,
+                      std::string extra_info=""){
+
+    // create contraction
+    MContraction::Meson::Par contraction;
+    assign_contraction_par_pair(contraction, q1, q2, gammas_snk_src_vector_of_array, sink);
+    std::string contraction_name = make_contraction_name(contraction, prefix, "Gammas", "Gammas", extra_info);
+    contraction.output = folder_output + "/" + contraction_name;
+    application.createModule<MContraction::Meson>(contraction_name, contraction);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2pt contraction
@@ -188,6 +225,17 @@ void make_2pt_contraction(Application &application,
     make_contraction(application, "2pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/2pt", extra_info);
 }
 
+void make_2pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::array<std::string, 2>> gammas_snk_src_vector_of_array,
+                          std::string sink,
+                          std::string folder_output,
+                          std::string extra_info=""){
+
+    make_contraction(application, "2pt", q1, q2, gammas_snk_src_vector_of_array, sink, folder_output + "/2pt", extra_info);
+}
+
 void make_2pt_contraction_pair(Application &application,
                           std::string q1,
                           std::string q2,
@@ -198,6 +246,8 @@ void make_2pt_contraction_pair(Application &application,
 
     make_contraction_pair(application, "2pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/2pt", extra_info);
 }
+
+
 
 
 
@@ -229,6 +279,18 @@ void make_3pt_contraction(Application &application,
     make_contraction(application, "3pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/3pt", extra_info);
 }
 
+void make_3pt_contraction(Application &application,
+                          std::string q1,
+                          std::string q2,
+                          std::vector<std::array<std::string, 2>> gammas_snk_src_vector_of_array,
+                          std::string sink,
+                          std::string folder_output,
+                          std::string extra_info=""){
+
+    make_contraction(application, "3pt", q1, q2, gammas_snk_src_vector_of_array, sink, folder_output + "/3pt", extra_info);
+}
+
+
 // general 3pt contraction for list of gammas_src
 void make_3pt_contraction_pair(Application &application,
                           std::string q1,
@@ -240,6 +302,7 @@ void make_3pt_contraction_pair(Application &application,
 
     make_contraction_pair(application, "3pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/3pt", extra_info);
 }
+
 
 
 // ////////////////////////////////////////////////////////////////////////////////
