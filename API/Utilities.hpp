@@ -236,17 +236,22 @@ std::string get_mom(std::string string){
 
 // make twist parameter in the form "x x x x" 
 std::string make_twist_par(std::array<double, 4> twist){
+    int max_decimals = 3; //num_decimals(twist[0]);
+    for (int tw=1; tw<twist.size(); tw++){
+      if (num_decimals(twist[tw])>max_decimals)
+      max_decimals = num_decimals(twist[tw]);
+    }
     // Create an output string stream
     std::ostringstream streamObj;
     // Set fixed-point Notation and precision
-    streamObj << std::fixed << std::setprecision(num_decimals(twist[0])) << twist[0];
+    streamObj << std::fixed << std::setprecision(max_decimals) << twist[0];
     // Get string from output string stream
     std::string mom_par = streamObj.str();
 
     //std::string mom_par = std::to_string(twist[0]);
     for (int d=1; d<twist.size(); d++){
         std::ostringstream streamObj_d;
-        streamObj_d << std::fixed << std::setprecision(num_decimals(twist[d])) << twist[d];
+        streamObj_d << std::fixed << std::setprecision(max_decimals) << twist[d];
         std::string mom_par_d = streamObj_d.str();        
         mom_par += " " + mom_par_d;
     }
