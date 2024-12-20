@@ -121,7 +121,7 @@ std::vector<std::array<std::string, 2>> GAMMAS_2PT = {
 // Gammas for Ds (in 3pt)
 std::vector<std::string> GAMMAS_Ds = {
   "Gamma5",
-  "Gamma5GammaT",
+  "GammaTGamma5",
   "GammaT",
   "GammaX",
   "GammaY",
