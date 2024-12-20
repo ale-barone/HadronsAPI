@@ -25,7 +25,7 @@ TEMPL=main_template.cpp
 
 # DIRBIN=binXMLgen
 # mkdir -p $DIRBIN
-DIRXML=XMLs/${ENS}
+DIRXML=../../../XMLs/${ENS}
 mkdir -p $DIRXML
 
 # function to copy token for ti ts tf
