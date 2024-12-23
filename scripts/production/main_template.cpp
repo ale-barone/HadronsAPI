@@ -227,11 +227,11 @@ std::string make_sm_propagator(Application &application, std::string name, std::
 // each of tree/impr will contain all configs
 
 std::string make_folder_structure_4pt_tree(std::string cm, std::array<double, 4> twist){
-  std::string out = folder_output + "/4pt/cm" + cm + "/tw" + make_twist_name(twist) + "/tree";
+  std::string out = folder_output + "/4pt/cm" + cm + "/tw_" + make_twist_name(twist) + "/tree";
   return out;
 }
 std::string make_folder_structure_4pt_impr(std::string cm, std::array<double, 4> twist){
-  std::string out = folder_output + "/4pt/cm" + cm + "/tw" + make_twist_name(twist) + "/impr";
+  std::string out = folder_output + "/4pt/cm" + cm + "/tw_" + make_twist_name(twist) + "/impr";
   return out;
 }
 
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
   //========================================================================//
 
   
-  std::vector<std::string> quark_sNl;
+  std::vector<std::string> quark_lNs;
   std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SL_tsnk_w;
   std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SS_tsnk_w;
   std::vector<std::vector<std::string>> source_seq_sNl;
@@ -363,7 +363,18 @@ int main(int argc, char *argv[])
 
     // quark_spec
     std::string quark_spec = AFermion::make_propagator(application, spectator_quark, source_z2, solver_spec);
-    quark_sNl.push_back(quark_spec);
+    quark_lNs.push_back(quark_spec);
+
+    // pion/kaon 2pt
+    if (spectator_quark=="l"){
+      // pion
+      AContraction::make_2pt_contraction(application, quark_lNs[0], quark_lNs[0], GAMMAS_2PT, sink, folder_output, extra_info);
+    }
+    else if (spectator_quark=="s"){
+      // kaon
+      AContraction::make_2pt_contraction(application, quark_lNs[0], quark_lNs[1], GAMMAS_2PT, sink, folder_output, extra_info);
+    }
+
     //========================================================================//
     // Loop over smearing types and widths
     //========================================================================//
@@ -445,13 +456,13 @@ int main(int argc, char *argv[])
   LOG(Message) << "Making 2pt/3pt contractions for charms" << std::endl;
 
   for (int cm=0; cm<CMASS.size(); cm++){
-    for (int tw=0; tw<NTWISTS_small; tw++){
+    for (int tw=0; tw<NTWISTS; tw++){
       std::string quark_c_cm_tw = AFermion::make_propagator(application, "c_m" + CMASS[cm], source_z2, solver_c_cm_tw[cm][tw]);
       
       // contractions
       for (int spec=0; spec<SPECTATORS.size(); spec++){
         // 2pt D(s)(*)
-        AContraction::make_2pt_contraction(application, quark_c_cm_tw, quark_sNl[spec], GAMMAS_2PT, sink, folder_output, extra_info);
+        AContraction::make_2pt_contraction(application, quark_c_cm_tw, quark_lNs[spec], GAMMAS_2PT, sink, folder_output, extra_info);
         // 3pt
         // D(s)->D(s)  
         if (TWISTS[tw]==TW0){
@@ -503,7 +514,7 @@ int main(int argc, char *argv[])
   std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprI_b_spec_tsnk_w(NImpr);
   std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprIII_b_spec_tsnk_w(NImpr);
 
-  for (int i = 0; i < NImpr; i++) // Loop over indices/gammas of improvement
+  for (int i=0; i<NImpr; i++) // Loop over indices/gammas of improvement
   {
     // Create vectors for each level
     std::vector<std::vector<std::vector<std::string>>> quarkImprI_spec_tsnk_w(SPECTATORS.size());
@@ -515,7 +526,7 @@ int main(int argc, char *argv[])
     //========================================================================//
     // Loop over spectator quarks
     //========================================================================//
-    for (int q = 0; q < SPECTATORS.size(); ++q)
+    for (int q=0; q<SPECTATORS.size(); q++)
     {
       // Initialize the third dimension
       std::vector<std::vector<std::string>> quarkImprI_tsnk_w(TSNKS.size());
@@ -524,7 +535,7 @@ int main(int argc, char *argv[])
       //========================================================================//
       // Loop over time separations
       //========================================================================//
-      for (int tsnk = 0; tsnk < TSNKS.size(); ++tsnk)
+      for (int tsnk=0; tsnk<TSNKS.size(); tsnk++)
       {
         // Initialize the innermost dimension
         std::vector<std::string> quarkImprI_w(WIDTHS_l.size());
@@ -533,7 +544,8 @@ int main(int argc, char *argv[])
         //========================================================================//
         // Loop over SS smearing on strange/light and all widths
         //========================================================================//
-        for (int w = 0; w < WIDTHS_l.size(); ++w)
+        //assert(WIDTHS_l.size()==WIDTHS_s.size());
+        for (int w=0; w<WIDTHS_l.size(); w++)
         {
           // Call the functions and store the results in the innermost vectors
           quarkImprI_w[w] = ARHQ::make_RHQInsertionI(application, quark_b_sNl_SS_tsnk_w[q][tsnk][w], dir, gamma);
@@ -578,7 +590,7 @@ int main(int argc, char *argv[])
               widths = WIDTHS_l;
             else if (SPECTATORS[spec] == "s")
               widths = WIDTHS_s;
-            for (int ts=0; ts < TSNKS.size(); ts++){
+            for (int ts=0; ts<TSNKS.size(); ts++){
               for (int w=0; w<widths.size(); w++){
                 std::string folder_4pt_tree = make_folder_structure_4pt_tree(CMASS[cm], TWISTS[tw]);
                 AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_tree, extra_info);
@@ -604,9 +616,9 @@ int main(int argc, char *argv[])
 
   LOG(Message) << "Generating 4pt functions with impr on t1" << std::endl;
 
-  for (int imp=0; imp<NImpr; imp++){
-    std::string dir = RHQImpr[imp][0];
-    std::string gamma = RHQImpr[imp][1];
+  for (int i=0; i<NImpr; i++){
+    std::string dir = RHQImpr[i][0];
+    std::string gamma = RHQImpr[i][1];
 
     // loop over t1 insertions
     for (int t1_dummy = 0; t1_dummy < T1INS.size(); t1_dummy++){
