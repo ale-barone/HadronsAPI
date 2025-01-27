@@ -274,7 +274,7 @@ void make_3pt_contraction(Application &application,
                           std::array<std::vector<std::string>, 2> gammas_snk_src_list,
                           std::string sink,
                           std::string folder_output,
-                          std::string extra_info){
+                          std::string extra_info=""){
 
     make_contraction(application, "3pt", q1, q2, gammas_snk_src_list, sink, folder_output + "/3pt", extra_info);
 }
