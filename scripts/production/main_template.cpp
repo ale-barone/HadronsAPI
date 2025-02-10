@@ -455,8 +455,8 @@ int main(int argc, char *argv[])
         for (int i=0; i<NImpr; i++){
           std::string dir = RHQImpr[i][0];
           std::string gamma = RHQImpr[i][1];
-          quarkImprI_b_spec_SL_i.push_back(ARHQ::make_RHQInsertionII(application, quark_b_spec_SL, dir, gamma));
-          quarkImprIII_b_spec_SL_i.push_back(ARHQ::make_RHQInsertionIV(application, quark_b_spec_SL, dir, gamma));
+          quarkImprI_b_spec_SL_i.push_back(ARHQ::make_RHQInsertionI(application, quark_b_spec_SL, dir, gamma));
+          quarkImprIII_b_spec_SL_i.push_back(ARHQ::make_RHQInsertionIII(application, quark_b_spec_SL, dir, gamma));
         }
         quarkImprI_b_spec_SL_w_i.push_back(quarkImprI_b_spec_SL_i);
         quarkImprIII_b_spec_SL_w_i.push_back(quarkImprIII_b_spec_SL_i);
@@ -614,7 +614,6 @@ int main(int argc, char *argv[])
   }
 
   //for (int t1ins=0; t1ins<T1INS.size(); t1ins++){
-  
   for (int cm=0; cm<CMASS.size(); cm++){
     for (int tw=0; tw<NTWISTS; tw++){
       for (int t1ins=0; t1ins<T1INS.size(); t1ins++){
