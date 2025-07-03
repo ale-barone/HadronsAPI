@@ -1,27 +1,28 @@
 #!/usr/bin/zsh
 
 ARG=$#
-if (( $ARG < 1 || $ARG==3 || $ARG>4  )); then
-  echo "usage: $0 <ensID> <tsrc start> [<step>  <tsrc end>]"
+echo $ARG
+if (( $ARG!=3 && $ARG!=5  )); then
+  echo "usage: $0 <main*.cpp> <ensID> <tsrc start> [<step>  <tsrc end>]"
   exit 1
 fi
 
-if (( $ARG==2 )); then
-  ENS=$1
-  START=$2
+TEMPL=$1
+ENS=$2
+
+if (( $ARG==3 )); then  
+  START=$3
   STEP=1
   STOP=$START
-elif (( $ARG==4 )); then
-  ENS=$1
-  START=$2
-  STEP=$3
-  STOP=$4
+elif (( $ARG==5 )); then
+  START=$3
+  STEP=$4
+  STOP=$5
 fi
 
 TSRC=$(seq -s " " $START $STEP $STOP)
 
 DIR=`pwd`
-TEMPL=main_template.cpp
 
 # DIRBIN=binXMLgen
 # mkdir -p $DIRBIN
@@ -49,16 +50,16 @@ function replace_t_tokens(){
 
 # compile xml
 function make_xml(){
-    TEMPL=$1
-    ENS=$2
-    TSRC=$3
+    templ=$1
+    ens=$2
+    tsrc=$3
     echo "-------------------------------------"
-	  echo "Making xml with tsrc=${TSRC} for ens=${ENS} ..."
-    sed -e "s/@tsrc@/${TSRC}/g" -e "s/@ensID@/${ENS}/g" ${TEMPL} > main.cpp
+	  echo "Making xml with tsrc=${tsrc} for ens=${ens} ..."
+    sed -e "s/@tsrc@/${tsrc}/g" -e "s/@ensID@/${ens}/g" ${templ} > main.cpp
     mv main.cpp ../
     cd ../build; make -j4; cd ${DIR}
- 
-    BIN=XMLgen_tsrc${TSRC}_ens${ENS}
+
+    BIN=XMLgen_tsrc${tsrc}_ens${ens}
     mv ../build/my-hadrons-app $DIRXML/$BIN
     cd $DIRXML; ./$BIN
 
