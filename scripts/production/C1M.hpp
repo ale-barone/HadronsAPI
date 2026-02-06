@@ -9,12 +9,18 @@ namespace ENS{
 
   // charm masses
   //std::vector<double> CMASS = {0.30, 0.35, 0.40}; 
-  std::vector<std::string> CMASS = {"0.30", "0.35", "0.40"}; 
+  // std::vector<std::string> CMASS = {"0.30", "0.35", "0.40"}; 
+  std::vector<std::string> CMASS = {"0.35"}; 
 
   // tsnk position
-  std::vector<int> TSNKS = {18, 20, 22};
+  // std::vector<int> TSNKS = {18, 20, 22};
   // t1 insertions
-  std::vector<int> T1INS = {6};
+  // std::vector<int> T1INS = {4, 5, 6};
+
+  // FOR ROME
+  std::vector<int> TSNKS = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+  // t1 insertions
+  std::vector<int> T1INS = {4, 5, 6};
 
   // smearings
   // light
@@ -27,7 +33,7 @@ namespace ENS{
   std::string GAUGE_NAME = "gauge";
   void make_gauge(Application &application){
     MIO::LoadNersc::Par gauge;
-    gauge.file = "/mnt/lustre/tursafs1/home/dp207/dp207/shared/paboyle/C1M/ckpoint_C1M_lat";
+    gauge.file = "/mnt/lustre/tursafs1/home/dp391/shared/data/configs/dwf_2+1f/C1M/ckpoint_C1M_lat";
     application.createModule<MIO::LoadNersc>(GAUGE_NAME, gauge);
   }
 
