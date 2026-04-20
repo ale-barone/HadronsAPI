@@ -30,11 +30,11 @@ std::string TSRC_STR = tsrc_to_string(TSRC);
 // run ID
 std::string RUNID = ENSID; // do we need to coordinate with Tobi?
 // file name
-std::string OUTPUT_FILE =  "inclusive_btoc_impr2_" + ENSID + "_tsrc" + TSRC_STR + ".template.xml";
+std::string OUTPUT_FILE =  "inclusive_SNK_btoc_impr2_" + ENSID + "_tsrc" + TSRC_STR + ".template.xml";
 // extra info
 std::string extra_info = "";
 // folder name
-std::string folder_output = "../../data/" + ENSID + "/output_inclusive_btoc/tsrc" + TSRC_STR;
+std::string folder_output = "../../data/" + ENSID + "/output_inclusive_SNK_btoc/tsrc" + TSRC_STR;
 
 
 // GLOBAL VARIABLE ENSEMBLE SPECIFIC THAT HAS TO BE DEFINED IN  <template/@ensID@.hpp>
@@ -44,6 +44,7 @@ double AINV = ENS::AINV;
 
 // Current insertion times
 std::vector<int> TSNKS = ENS::TSNKS;
+std::vector<int> TSNKS_3PT = ENS::TSNKS_3PT;
 std::vector<int> T1INS = ENS::T1INS;
 
 // charm masses
@@ -340,11 +341,11 @@ int main(int argc, char *argv[])
 
   
   std::vector<std::string> quark_lNs;
+  std::vector<std::vector<std::string>> quark_lNs_SS;
   std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SL_tsnk_w;
   std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprI_b_sNl_SL_tsnk_w_i;
   std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprIII_b_sNl_SL_tsnk_w_i;
 
-  std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SS_tsnk_w;
   std::vector<std::vector<std::string>> source_seq_sNl;
   for (std::string spectator_quark : SPECTATORS)
   {
@@ -390,6 +391,7 @@ int main(int argc, char *argv[])
       quark_spec_SL_sm.push_back(make_sm_propagator(application, spectator_quark + "_SL", quark_spec, widths[w]));
       quark_spec_SS_sm.push_back(make_sm_propagator(application, spectator_quark + "_SS", quark_spec_LS_sm[w], widths[w]));
     }
+    quark_lNs_SS.push_back(quark_spec_SS_sm);
 
     //========================================================================//
     // B(s) for all smearing for all combinations
@@ -410,12 +412,10 @@ int main(int argc, char *argv[])
     std::vector<std::vector<std::string>> quark_b_spec_SL_tsnk_w;
     std::vector<std::vector<std::vector<std::string>>> quarkImprI_b_spec_SL_tsnk_w_i;
     std::vector<std::vector<std::vector<std::string>>> quarkImprIII_b_spec_SL_tsnk_w_i;
-    std::vector<std::vector<std::string>> quark_b_spec_SS_tsnk_w;
-    std::vector<std::string> quark_b_spec_tsnk;
     std::vector<std::string> source_seq_spec_tsnk;
-    for (int i=0; i<TSNKS.size(); i++)
+    for (int i=0; i<TSNKS_3PT.size(); i++)
     {
-      int tsnk = shift_tins(TSNKS[i]);
+      int tsnk = shift_tins(TSNKS_3PT[i]);
 
       // sequential sources on top of quark_spec
       // unsmeared
@@ -424,11 +424,9 @@ int main(int argc, char *argv[])
       // smeared
       std::vector<std::string> source_seq_spec_LS_w;
       std::vector<std::string> source_seq_spec_SL_w;
-      std::vector<std::string> source_seq_spec_SS_w;
       for (int w=0; w<widths.size(); w++){
         source_seq_spec_LS_w.push_back(ASource::make_seq_source(application, quark_spec_LS_sm[w], tsnk, "Gamma5", MOM0));
         source_seq_spec_SL_w.push_back(ASource::make_seq_source(application, quark_spec_SL_sm[w], tsnk, "Gamma5", MOM0));
-        source_seq_spec_SS_w.push_back(ASource::make_seq_source(application, quark_spec_SS_sm[w], tsnk, "Gamma5", MOM0));
       }
 
 
@@ -440,12 +438,10 @@ int main(int argc, char *argv[])
       //========================================================================//
       // Loop over smearing types and widths
       //========================================================================//
-      std::vector<std::string> quark_b_spec_SS_w;
       std::vector<std::string> quark_b_spec_SL_w;
       std::vector<std::vector<std::string>> quarkImprI_b_spec_SL_w_i;
       std::vector<std::vector<std::string>> quarkImprIII_b_spec_SL_w_i;
       for (int w=0; w<widths.size(); w++){
-        quark_b_spec_SS_w.push_back(AFermion::make_seq_propagator(application, "b", source_seq_spec_SS_w[w], solver_b));
         std::string quark_b_spec_SL = AFermion::make_seq_propagator(application, "b", source_seq_spec_SL_w[w], solver_b);
         quark_b_spec_SL_w.push_back(quark_b_spec_SL);
 
@@ -461,18 +457,17 @@ int main(int argc, char *argv[])
         quarkImprI_b_spec_SL_w_i.push_back(quarkImprI_b_spec_SL_i);
         quarkImprIII_b_spec_SL_w_i.push_back(quarkImprIII_b_spec_SL_i);
       }
-      quark_b_spec_SS_tsnk_w.push_back(quark_b_spec_SS_w);
       quark_b_spec_SL_tsnk_w.push_back(quark_b_spec_SL_w);
       quarkImprI_b_spec_SL_tsnk_w_i.push_back(quarkImprI_b_spec_SL_w_i);
       quarkImprIII_b_spec_SL_tsnk_w_i.push_back(quarkImprIII_b_spec_SL_w_i);
     }
     source_seq_sNl.push_back(source_seq_spec_tsnk);
-    quark_b_sNl_SS_tsnk_w.push_back(quark_b_spec_SS_tsnk_w);
     quark_b_sNl_SL_tsnk_w.push_back(quark_b_spec_SL_tsnk_w);
 
     quarkImprI_b_sNl_SL_tsnk_w_i.push_back(quarkImprI_b_spec_SL_tsnk_w_i);
     quarkImprIII_b_sNl_SL_tsnk_w_i.push_back(quarkImprIII_b_spec_SL_tsnk_w_i);
   }
+
 
   //////////////////////////////////////////////////////////////////////////////
   // CHARM LOOP FOR 2PT/3PT
@@ -492,6 +487,7 @@ int main(int argc, char *argv[])
         quarkImprII_c_cm_tw.push_back(ARHQ::make_RHQInsertionII(application, quark_c_cm_tw, dir, gamma, TWISTS[tw]));
         quarkImprIV_c_cm_tw.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_cm_tw, dir, gamma, TWISTS[tw]));
       }
+      
 
       // contractions
       for (int spec=0; spec<SPECTATORS.size(); spec++){
@@ -500,8 +496,7 @@ int main(int argc, char *argv[])
         // 3pt
         // D(s)->D(s)  
         if (TWISTS[tw]==TW0){
-          for (int i = 0; i < TSNKS.size(); ++i){
-            int tsnk = shift_tins(TSNKS[i]);
+          for (int i = 0; i < TSNKS_3PT.size(); ++i){
             std::string quark_c_spec_cm_TW0 = AFermion::make_seq_propagator(application, "c_m" + CMASS[cm], source_seq_sNl[spec][i], solver_c_cm_tw[cm][tw]);
             AContraction::make_3pt_contraction(application, quark_c_spec_cm_TW0, quark_c_cm_tw, {GAMMAS, {"Gamma5"}}, sink, folder_output, extra_info);
           }
@@ -514,7 +509,7 @@ int main(int argc, char *argv[])
         else if (SPECTATORS[spec] == "s")
           widths = WIDTHS_s;
         
-        for (int tsnk=0; tsnk< TSNKS.size(); tsnk++){
+        for (int tsnk=0; tsnk< TSNKS_3PT.size(); tsnk++){
           for (int w=0; w<widths.size(); w++){
             AContraction::make_3pt_contraction(application, quark_b_sNl_SL_tsnk_w[spec][tsnk][w], quark_c_cm_tw, {GAMMAS, GAMMAS_Ds}, sink, folder_output, extra_info);
             for (int i=0; i<NImpr; i++){
@@ -538,6 +533,32 @@ int main(int argc, char *argv[])
   ////////////////////////////////////////////////////////////////////////////
   // 4pt CONTRACTIONS (T1 FIXED)
   ////////////////////////////////////////////////////////////////////////////
+
+  // first create the sequential quark_b_sNl_SS_tsnk_w
+  std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SS_tsnk_w;
+  for (int spec=0; spec<SPECTATORS.size(); spec++){
+    std::string spectator_quark = SPECTATORS[spec];
+    std::vector<std::string> widths;
+    if (spectator_quark == "l"){
+      widths = WIDTHS_l;
+    }
+    else if (spectator_quark == "s"){
+      widths = WIDTHS_s;
+    }
+    // loop over tsnk
+    std::vector<std::vector<std::string>> quark_b_spec_SS_tsnk_w;
+    for (int i=0; i<TSNKS.size(); i++){
+      int tsnk = shift_tins(TSNKS[i]);
+      // loop over smearing 
+      std::vector<std::string> quark_b_spec_SS_w;
+      for (int w=0; w<widths.size(); w++){
+        std::string source_seq_spec_SS_w = ASource::make_seq_source(application, quark_lNs_SS[spec][w], tsnk, "Gamma5", MOM0);
+        quark_b_spec_SS_w.push_back(AFermion::make_seq_propagator(application, "b", source_seq_spec_SS_w, solver_b));
+      }
+      quark_b_spec_SS_tsnk_w.push_back(quark_b_spec_SS_w);
+    } 
+    quark_b_sNl_SS_tsnk_w.push_back(quark_b_spec_SS_tsnk_w);
+  }
 
   // ========================================================================//
   // Tree level
