@@ -31,7 +31,7 @@ Gamma::Algebra GammaAlg_from_str(std::string gamma){
 
 // assign the RHQ parameters
 template <typename TRHQ>
-std::string assign_RHQInsertionI_II_par(TRHQ &Impr, std::string incipit, std::string q, std::string dir, std::string gamma, std::array<double,4> propTwist, std::string gauge){
+std::string assign_RHQInsertionI_II_par(TRHQ &Impr, std::string incipit, std::string q, std::string dir, std::string gamma, std::array<double,4> propTwist, int counter, std::string gauge){
     Impr.q = q;
     Impr.index = dir_to_index(dir);
     Impr.gamma = GammaAlg_from_str(gamma);
@@ -40,15 +40,19 @@ std::string assign_RHQInsertionI_II_par(TRHQ &Impr, std::string incipit, std::st
       Impr.propTwist = make_twist_par(propTwist);
     }
 
+    std::string counter_name = "";
+    if (counter>=0)
+        counter_name = "#" + std::to_string(counter);
+
     std::string Impr_name = 
-        "quarkImpr" + incipit + dir + gamma
-        + "_" + remove_str(q, "quark_");
+        "quarkImpr" + incipit + dir + gamma + counter_name
+        + "_" + remove_str(remove_str_counter(q), "quark_");
     return Impr_name;
 }
 
 // assign the RHQ parameters
 template <typename TRHQ>
-std::string assign_RHQInsertionIII_IV_par(TRHQ &Impr, std::string incipit, std::string q, std::string dir1, std::string gamma5, std::array<double,4> propTwist, std::string gauge){
+std::string assign_RHQInsertionIII_IV_par(TRHQ &Impr, std::string incipit, std::string q, std::string dir1, std::string gamma5, std::array<double,4> propTwist, int counter, std::string gauge){
     Impr.q = q;
     Impr.index1 = dir_to_index(dir1);
     Impr.gamma5 = GammaAlg_from_str(gamma5);
@@ -57,9 +61,13 @@ std::string assign_RHQInsertionIII_IV_par(TRHQ &Impr, std::string incipit, std::
       Impr.propTwist = make_twist_par(propTwist);
     }
 
+    std::string counter_name = "";
+    if (counter>=0)
+        counter_name = "#" + std::to_string(counter);
+
     std::string Impr_name = 
-        "quarkImpr" + incipit + dir1 + gamma5 
-        + "_" + remove_str(q, "quark_");
+        "quarkImpr" + incipit + dir1 + gamma5 + counter_name
+        + "_" + remove_str(remove_str_counter(q), "quark_");
     return Impr_name;
 }
 
@@ -68,28 +76,38 @@ std::string assign_RHQInsertionIII_IV_par(TRHQ &Impr, std::string incipit, std::
 // Insertion Modules
 ////////////////////////////////////////////////////////////////////////////////
 
+struct RHQInsertionOpts {
+  std::array<double,4> propTwist = twist0;
+  int counter = -1;
+  std::string gauge = "gauge";
+
+  RHQInsertionOpts& withPropTwist(std::array<double,4> t) { propTwist = t; return *this; }
+  RHQInsertionOpts& withCounter(int c)                { counter = c; return *this; }
+  RHQInsertionOpts& withGauge(std::string g)          { gauge = std::move(g); return *this; }
+};
+
 // RHQInsertionI
-std::string make_RHQInsertionI(Application &application, std::string q, std::string dir, std::string gamma, std::array<double,4> propTwist=twist0, std::string gauge="gauge"){
+std::string make_RHQInsertionI(Application &application, std::string q, std::string dir, std::string gamma, RHQInsertionOpts opts = {}){
     MRHQ::RHQInsertionI::Par Impr;
-    std::string Impr_name = assign_RHQInsertionI_II_par(Impr, "I", q, dir, gamma, propTwist, gauge);
+    std::string Impr_name = assign_RHQInsertionI_II_par(Impr, "I", q, dir, gamma, opts.propTwist, opts.counter, opts.gauge);
 
     application.createModule<MRHQ::RHQInsertionI>(Impr_name, Impr);
     return Impr_name;
 }
 
 // RHQInsertionII
-std::string make_RHQInsertionII(Application &application, std::string q, std::string dir, std::string gamma, std::array<double,4> propTwist=twist0, std::string gauge="gauge"){
+std::string make_RHQInsertionII(Application &application, std::string q, std::string dir, std::string gamma, RHQInsertionOpts opts = {}){
     MRHQ::RHQInsertionII::Par Impr;
-    std::string Impr_name = assign_RHQInsertionI_II_par(Impr, "II", q, dir, gamma, propTwist, gauge);
+    std::string Impr_name = assign_RHQInsertionI_II_par(Impr, "II", q, dir, gamma, opts.propTwist, opts.counter, opts.gauge);
 
     application.createModule<MRHQ::RHQInsertionII>(Impr_name, Impr);
     return Impr_name;
 }
 
 // RHQInsertionI
-std::string make_RHQInsertionIII(Application &application, std::string q, std::string dir, std::string gamma5, std::array<double,4> propTwist=twist0, std::string gauge="gauge"){
+std::string make_RHQInsertionIII(Application &application, std::string q, std::string dir, std::string gamma5, RHQInsertionOpts opts = {}){ 
     MRHQ::RHQInsertionIII::Par Impr;
-    std::string Impr_name = assign_RHQInsertionIII_IV_par(Impr, "III", q, dir, gamma5, propTwist, gauge);
+    std::string Impr_name = assign_RHQInsertionIII_IV_par(Impr, "III", q, dir, gamma5, opts.propTwist, opts.counter, opts.gauge);
 
     application.createModule<MRHQ::RHQInsertionIII>(Impr_name, Impr);
     return Impr_name;
@@ -97,9 +115,9 @@ std::string make_RHQInsertionIII(Application &application, std::string q, std::s
 
 
 // RHQInsertionI
-std::string make_RHQInsertionIV(Application &application, std::string q, std::string dir, std::string gamma5, std::array<double,4> propTwist=twist0, std::string gauge="gauge"){
+std::string make_RHQInsertionIV(Application &application, std::string q, std::string dir, std::string gamma5, RHQInsertionOpts opts = {}){
     MRHQ::RHQInsertionIV::Par Impr;
-    std::string Impr_name = assign_RHQInsertionIII_IV_par(Impr, "IV", q, dir, gamma5, propTwist, gauge);
+    std::string Impr_name = assign_RHQInsertionIII_IV_par(Impr, "IV", q, dir, gamma5, opts.propTwist, opts.counter, opts.gauge);
 
     application.createModule<MRHQ::RHQInsertionIV>(Impr_name, Impr);
     return Impr_name;

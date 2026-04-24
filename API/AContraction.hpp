@@ -103,9 +103,9 @@ std::string make_contraction_name(TContraction &contraction,
     std::string contraction_name = prefix + "_"
                                    + "snkmom_" + snkmom + "_"
                                    + gamma_snk + "_" 
-                                   + contraction.q1 + "_"
+                                   + remove_str_counter(contraction.q1) + "_"
                                    + gamma_src + "_" 
-                                   + contraction.q2;
+                                   + remove_str_counter(contraction.q2);
     if (extra_info != ""){
         contraction_name = contraction_name + "_" + extra_info;
     }

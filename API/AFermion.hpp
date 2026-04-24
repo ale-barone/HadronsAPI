@@ -11,7 +11,7 @@ void assign_propagator_par(TFermion &quark, std::string source, std::string solv
 
 
 
-std::string make_propagator_name(std::string name, std::string source, std::string solver){
+std::string make_propagator_name(std::string name, std::string source, std::string solver, int counter = -1){
     
     std::string twist = get_twist(solver);
     std::string twist_name = "";
@@ -26,30 +26,34 @@ std::string make_propagator_name(std::string name, std::string source, std::stri
     std::string quark_source = "";
     if (has_string(source, "_seq"))
         // quark_source = "_" + remove_twist_str(remove_str(remove_str(source, "source_seq_"), "sm_"));
-        quark_source = "_" + remove_twist_str(remove_str(remove_str(remove_str(source, "source_"), "seq_"), "sm_"));
-    
+        quark_source = "_" + remove_twist_str(remove_str(remove_str(remove_str(remove_str_counter(source), "source_"), "seq_"), "sm_"));
+
+    std::string counter_name = "";
+    if (counter>=0)
+        counter_name = "#" + std::to_string(counter);
+
     std::string name_prop = 
-          "quark_" + name 
+          "quark" + counter_name + "_" + name 
         + quark_source
         + twist_name;// + mom_name;
     return name_prop;
 }
 
 // PROPAGATOR
-std::string make_propagator(Application &application, std::string name, std::string source, std::string solver){
+std::string make_propagator(Application &application, std::string name, std::string source, std::string solver, int counter = -1){
     MFermion::GaugeProp::Par quark;
     quark.source = source;
     quark.solver = solver;
 
-    std::string name_prop = make_propagator_name(name, source, solver);
+    std::string name_prop = make_propagator_name(name, source, solver, counter);
     application.createModule<MFermion::GaugeProp>(name_prop, quark);
     return name_prop;
 }
 
 // SEQUENTIAL PROPAGATOR
-std::string make_seq_propagator(Application &application, std::string name, std::string seq_source, std::string solver){
-    return make_propagator(application, name, seq_source, solver);
+std::string make_seq_propagator(Application &application, std::string name, std::string seq_source, std::string solver, int counter = -1){
+    return make_propagator(application, name, seq_source, solver, counter);
 }
-
+  
 
 END_APIMODULE_NAMESPACE

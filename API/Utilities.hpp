@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <iostream>
 #include <algorithm> 
+#include <regex>
 #include <Hadrons/Modules.hpp>
 
 using namespace Grid;
@@ -37,6 +38,19 @@ std::string remove_str(std::string string, std::string toErase){
         string.erase(pos, toErase.length());
     }
     return string; 
+}
+
+// Removes all occurrences of '#' followed by an integer 
+// (e.g. "foo#42_bar#7_baz" -> "foo_bar_baz")
+// if prefix is provided, it removes only occurrences of "prefix#number" 
+// e.g. remove_str_counter("foo#42_bar#7_baz", "foo") -> "foo_bar#7_baz"
+std::string remove_str_counter(const std::string& input, const std::string& prefix = "") {
+    if (!prefix.empty()) {
+        std::regex pattern("(" + prefix + R"()#\d+)");
+        return std::regex_replace(input, pattern, "$1");
+    }
+    std::regex pattern(R"(#\d+)");
+    return std::regex_replace(input, pattern, "");
 }
 
 // count the number of negative signs "-" from the string "string"

@@ -64,7 +64,7 @@ std::string make_z2_source(Application &application, int tA, int tB){
 
 
 // SEQ SOURCE ~ improvement coefficents (!)
-std::string make_seq_source(Application &application, std::string q, int t, std::string gamma, std::array<int, 4> mom){
+std::string make_seq_source(Application &application, std::string q, int t, std::string gamma, std::array<int, 4> mom, int counter = -1){
     MSource::SeqGamma::Par source_seq;
 
     Gamma::Algebra gamma_alg = strToVec<Gamma::Algebra>(gamma)[0];
@@ -80,9 +80,13 @@ std::string make_seq_source(Application &application, std::string q, int t, std:
     std::string mom_name = "";
     if (mom_str != "0_0_0_0")
         mom_name = "_mom_" + mom_str;
+    
+    std::string counter_name = "";
+    if (counter>=0)
+        counter_name = "#" + std::to_string(counter);
 
-    std::string source_seq_name = "source_seq_"
-                                  + gamma 
+    std::string source_seq_name = "source_seq" + counter_name + "_"
+                                  + gamma
                                   + "_tins" + std::to_string(t)
                                   + mom_name + "_"
                                   + remove_str(source_seq.q, "quark_");

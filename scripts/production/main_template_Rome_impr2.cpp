@@ -484,8 +484,8 @@ int main(int argc, char *argv[])
       for (int i=0; i<NImpr; i++){
         std::string dir = RHQImpr[i][0];
         std::string gamma = RHQImpr[i][1];
-        quarkImprII_c_cm_tw.push_back(ARHQ::make_RHQInsertionII(application, quark_c_cm_tw, dir, gamma, TWISTS[tw]));
-        quarkImprIV_c_cm_tw.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_cm_tw, dir, gamma, TWISTS[tw]));
+        quarkImprII_c_cm_tw.push_back(ARHQ::make_RHQInsertionII(application, quark_c_cm_tw, dir, gamma, ARHQ::RHQInsertionOpts{}.withPropTwist(TWISTS[tw])));
+        quarkImprIV_c_cm_tw.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_cm_tw, dir, gamma, ARHQ::RHQInsertionOpts{}.withPropTwist(TWISTS[tw])));
       }
       
 
@@ -534,31 +534,31 @@ int main(int argc, char *argv[])
   // 4pt CONTRACTIONS (T1 FIXED)
   ////////////////////////////////////////////////////////////////////////////
 
-  // first create the sequential quark_b_sNl_SS_tsnk_w
-  std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SS_tsnk_w;
-  for (int spec=0; spec<SPECTATORS.size(); spec++){
-    std::string spectator_quark = SPECTATORS[spec];
-    std::vector<std::string> widths;
-    if (spectator_quark == "l"){
-      widths = WIDTHS_l;
-    }
-    else if (spectator_quark == "s"){
-      widths = WIDTHS_s;
-    }
-    // loop over tsnk
-    std::vector<std::vector<std::string>> quark_b_spec_SS_tsnk_w;
-    for (int i=0; i<TSNKS.size(); i++){
-      int tsnk = shift_tins(TSNKS[i]);
-      // loop over smearing 
-      std::vector<std::string> quark_b_spec_SS_w;
-      for (int w=0; w<widths.size(); w++){
-        std::string source_seq_spec_SS_w = ASource::make_seq_source(application, quark_lNs_SS[spec][w], tsnk, "Gamma5", MOM0);
-        quark_b_spec_SS_w.push_back(AFermion::make_seq_propagator(application, "b", source_seq_spec_SS_w, solver_b));
-      }
-      quark_b_spec_SS_tsnk_w.push_back(quark_b_spec_SS_w);
-    } 
-    quark_b_sNl_SS_tsnk_w.push_back(quark_b_spec_SS_tsnk_w);
-  }
+  // // first create the sequential quark_b_sNl_SS_tsnk_w
+  // std::vector<std::vector<std::vector<std::string>>> quark_b_sNl_SS_tsnk_w;
+  // for (int spec=0; spec<SPECTATORS.size(); spec++){
+  //   std::string spectator_quark = SPECTATORS[spec];
+  //   std::vector<std::string> widths;
+  //   if (spectator_quark == "l"){
+  //     widths = WIDTHS_l;
+  //   }
+  //   else if (spectator_quark == "s"){
+  //     widths = WIDTHS_s;
+  //   }
+  //   // loop over tsnk
+  //   std::vector<std::vector<std::string>> quark_b_spec_SS_tsnk_w;
+  //   for (int i=0; i<TSNKS.size(); i++){
+  //     int tsnk = shift_tins(TSNKS[i]);
+  //     // loop over smearing 
+  //     std::vector<std::string> quark_b_spec_SS_w;
+  //     for (int w=0; w<widths.size(); w++){
+  //       std::string source_seq_spec_SS_w = ASource::make_seq_source(application, quark_lNs_SS[spec][w], tsnk, "Gamma5", MOM0);
+  //       quark_b_spec_SS_w.push_back(AFermion::make_seq_propagator(application, "b", source_seq_spec_SS_w, solver_b));
+  //     }
+  //     quark_b_spec_SS_tsnk_w.push_back(quark_b_spec_SS_w);
+  //   } 
+  //   quark_b_sNl_SS_tsnk_w.push_back(quark_b_spec_SS_tsnk_w);
+  // }
 
   // ========================================================================//
   // Tree level
@@ -577,62 +577,59 @@ int main(int argc, char *argv[])
     source_seq_b.push_back(source_seq_b_t1);
   }
 
-  // improvements on t1
-  std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprI_b_spec_tsnk_w(NImpr);
-  std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprIII_b_spec_tsnk_w(NImpr);
+  // // improvements on t1
+  // std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprI_b_spec_tsnk_w(NImpr);
+  // std::vector<std::vector<std::vector<std::vector<std::string>>>> quarkImprIII_b_spec_tsnk_w(NImpr);
 
-  for (int i=0; i<NImpr; i++) // Loop over indices/gammas of improvement
-  {
-    // Create vectors for each level
-    std::vector<std::vector<std::vector<std::string>>> quarkImprI_spec_tsnk_w(SPECTATORS.size());
-    std::vector<std::vector<std::vector<std::string>>> quarkImprIII_spec_tsnk_w(SPECTATORS.size());
+  // for (int i=0; i<NImpr; i++) // Loop over indices/gammas of improvement
+  // {
+  //   // Create vectors for each level
+  //   std::vector<std::vector<std::vector<std::string>>> quarkImprI_spec_tsnk_w(SPECTATORS.size());
+  //   std::vector<std::vector<std::vector<std::string>>> quarkImprIII_spec_tsnk_w(SPECTATORS.size());
 
-    // select direction and gamma for improvement
-    std::string dir = RHQImpr[i][0];
-    std::string gamma = RHQImpr[i][1];
-    //========================================================================//
-    // Loop over spectator quarks
-    //========================================================================//
-    for (int q=0; q<SPECTATORS.size(); q++)
-    {
-      // Initialize the third dimension
-      std::vector<std::vector<std::string>> quarkImprI_tsnk_w(TSNKS.size());
-      std::vector<std::vector<std::string>> quarkImprIII_tsnk_w(TSNKS.size());
+  //   // select direction and gamma for improvement
+  //   std::string dir = RHQImpr[i][0];
+  //   std::string gamma = RHQImpr[i][1];
+  //   //========================================================================//
+  //   // Loop over spectator quarks
+  //   //========================================================================//
+  //   for (int q=0; q<SPECTATORS.size(); q++)
+  //   {
+  //     // Initialize the third dimension
+  //     std::vector<std::vector<std::string>> quarkImprI_tsnk_w(TSNKS.size());
+  //     std::vector<std::vector<std::string>> quarkImprIII_tsnk_w(TSNKS.size());
 
-      //========================================================================//
-      // Loop over time separations
-      //========================================================================//
-      for (int tsnk=0; tsnk<TSNKS.size(); tsnk++)
-      {
-        // Initialize the innermost dimension
-        std::vector<std::string> quarkImprI_w(WIDTHS_l.size());
-        std::vector<std::string> quarkImprIII_w(WIDTHS_l.size());
+  //     //========================================================================//
+  //     // Loop over time separations
+  //     //========================================================================//
+  //     for (int tsnk=0; tsnk<TSNKS.size(); tsnk++)
+  //     {
+  //       // Initialize the innermost dimension
+  //       std::vector<std::string> quarkImprI_w(WIDTHS_l.size());
+  //       std::vector<std::string> quarkImprIII_w(WIDTHS_l.size());
 
-        //========================================================================//
-        // Loop over SS smearing on strange/light and all widths
-        //========================================================================//
-        //assert(WIDTHS_l.size()==WIDTHS_s.size());
-        for (int w=0; w<WIDTHS_l.size(); w++)
-        {
-          // Call the functions and store the results in the innermost vectors
-          quarkImprI_w[w] = ARHQ::make_RHQInsertionI(application, quark_b_sNl_SS_tsnk_w[q][tsnk][w], dir, gamma);
-          quarkImprIII_w[w] = ARHQ::make_RHQInsertionIII(application, quark_b_sNl_SS_tsnk_w[q][tsnk][w], dir, gamma);
-        }
-
-        // Store the innermost vectors in the next level up
-        quarkImprI_tsnk_w[tsnk] = quarkImprI_w;
-        quarkImprIII_tsnk_w[tsnk] = quarkImprIII_w;
-      }
-
-      // Store these vectors into the quark spectator level
-      quarkImprI_spec_tsnk_w[q] = quarkImprI_tsnk_w;
-      quarkImprIII_spec_tsnk_w[q] = quarkImprIII_tsnk_w;
-    }
-
-    // Finally, store the entire structure into the outermost vectors
-    quarkImprI_b_spec_tsnk_w[i] = quarkImprI_spec_tsnk_w;
-    quarkImprIII_b_spec_tsnk_w[i] = quarkImprIII_spec_tsnk_w;
-  }
+  //       //========================================================================//
+  //       // Loop over SS smearing on strange/light and all widths
+  //       //========================================================================//
+  //       //assert(WIDTHS_l.size()==WIDTHS_s.size());
+  //       for (int w=0; w<WIDTHS_l.size(); w++)
+  //       {
+  //         // Call the functions and store the results in the innermost vectors
+  //         quarkImprI_w[w] = ARHQ::make_RHQInsertionI(application, quark_b_sNl_SS_tsnk_w[q][tsnk][w], dir, gamma);
+  //         quarkImprIII_w[w] = ARHQ::make_RHQInsertionIII(application, quark_b_sNl_SS_tsnk_w[q][tsnk][w], dir, gamma);
+  //       }
+  //       // Store the innermost vectors in the next level up
+  //       quarkImprI_tsnk_w[tsnk] = quarkImprI_w;
+  //       quarkImprIII_tsnk_w[tsnk] = quarkImprIII_w;
+  //     }
+  //     // Store these vectors into the quark spectator level
+  //     quarkImprI_spec_tsnk_w[q] = quarkImprI_tsnk_w;
+  //     quarkImprIII_spec_tsnk_w[q] = quarkImprIII_tsnk_w;
+  //   }
+  //   // Finally, store the entire structure into the outermost vectors
+  //   quarkImprI_b_spec_tsnk_w[i] = quarkImprI_spec_tsnk_w;
+  //   quarkImprIII_b_spec_tsnk_w[i] = quarkImprIII_spec_tsnk_w;
+  // }
 
   //for (int t1ins=0; t1ins<T1INS.size(); t1ins++){
   for (int cm=0; cm<CMASS.size(); cm++){
@@ -646,8 +643,8 @@ int main(int argc, char *argv[])
           for (int i=0; i<NImpr; i++){
             std::string dir = RHQImpr[i][0];
             std::string gamma = RHQImpr[i][1];
-            quarkImprII_c_b_i.push_back(ARHQ::make_RHQInsertionII(application, quark_c_b_cm, dir, gamma, TWISTS[tw]));
-            quarkImprIV_c_b_i.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_b_cm, dir, gamma, TWISTS[tw]));
+            quarkImprII_c_b_i.push_back(ARHQ::make_RHQInsertionII(application, quark_c_b_cm, dir, gamma, ARHQ::RHQInsertionOpts{}.withPropTwist(TWISTS[tw])));
+            quarkImprIV_c_b_i.push_back(ARHQ::make_RHQInsertionIV(application, quark_c_b_cm, dir, gamma, ARHQ::RHQInsertionOpts{}.withPropTwist(TWISTS[tw])));
           }
           for (int spec=0; spec<SPECTATORS.size(); spec++){
             // pick widths
@@ -658,15 +655,30 @@ int main(int argc, char *argv[])
               widths = WIDTHS_s;
             for (int ts=0; ts<TSNKS.size(); ts++){
               for (int w=0; w<widths.size(); w++){
+                // create (redundant sequential and improvement)
+                int tsnk = shift_tins(TSNKS[ts]);
+                int counter = g + NGAMMAS*t1ins + NGAMMAS*T1INS.size()*tw + NGAMMAS*T1INS.size()*NTWISTS*cm; 
+                // tw + cm*NTWISTS + t1ins*NTWISTS*CMASS.size() + g*NTWISTS*CMASS.size()*T1INS.size() + spec*NTWISTS*CMASS.size()*T1INS.size()*NGAMMAS + ts*NTWISTS*CMASS.size()*T1INS.size()*NGAMMAS*SPECTATORS.size() + w*NTWISTS*CMASS.size()*T1INS.size()*NGAMMAS*SPECTATORS.size()*TSNKS.size(); 
+                std::string source_seq_spec_SS_tsnk_w = ASource::make_seq_source(application, quark_lNs_SS[spec][w], tsnk, "Gamma5", MOM0, counter);
+                std::string quark_b_SS_spec_tsnk_w = AFermion::make_seq_propagator(application, "b", source_seq_spec_SS_tsnk_w, solver_b, counter);
+
                 std::string folder_4pt_tree = make_folder_structure_4pt_tree(CMASS[cm], TWISTS[tw]);
-                AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quark_c_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_tree, extra_info);
+                AContraction::make_4pt_contraction(application, quark_b_SS_spec_tsnk_w, quark_c_b_cm, {GAMMAS, {"Gamma5"}}, sink, folder_4pt_tree, extra_info);
                 
+                
+
                 std::string folder_4pt_impr = make_folder_structure_4pt_impr(CMASS[cm], TWISTS[tw]);
                 for (int i=0; i<NImpr; i++){
-                  AContraction::make_4pt_contraction(application, quarkImprI_b_spec_tsnk_w[i][spec][ts][w], quark_c_b_cm, {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
-                  AContraction::make_4pt_contraction(application, quarkImprIII_b_spec_tsnk_w[i][spec][ts][w], quark_c_b_cm, {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
-                  AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quarkImprII_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
-                  AContraction::make_4pt_contraction(application, quark_b_sNl_SS_tsnk_w[spec][ts][w], quarkImprIV_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  std::string dir = RHQImpr[i][0];
+                  std::string gammaImpr = RHQImpr[i][1];
+                  std::string quarkImprI_i_b_SS_spec_tsnk_w = ARHQ::make_RHQInsertionI(application, quark_b_SS_spec_tsnk_w, dir, gammaImpr, ARHQ::RHQInsertionOpts{}.withCounter(counter));
+                  std::string quarkImprIII_i_b_SS_spec_tsnk_w = ARHQ::make_RHQInsertionIII(application, quark_b_SS_spec_tsnk_w, dir, gammaImpr, ARHQ::RHQInsertionOpts{}.withCounter(counter));
+                  
+                  AContraction::make_4pt_contraction(application, quarkImprI_i_b_SS_spec_tsnk_w, quark_c_b_cm, {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  AContraction::make_4pt_contraction(application, quarkImprIII_i_b_SS_spec_tsnk_w, quark_c_b_cm, {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  
+                  AContraction::make_4pt_contraction(application, quark_b_SS_spec_tsnk_w, quarkImprII_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
+                  AContraction::make_4pt_contraction(application, quark_b_SS_spec_tsnk_w, quarkImprIV_c_b_i[i], {"Identity", "Gamma5"}, sink, folder_4pt_impr, extra_info);
                 }
               }
             }
