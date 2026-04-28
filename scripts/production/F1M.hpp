@@ -8,8 +8,8 @@ namespace ENS{
 
 
   // charm masses
-  //std::vector<double> CMASS = {0.30, 0.35, 0.40}; 
-  std::vector<std::string> CMASS = {"0.204100", "0.232400", "0.279400"}; 
+  // std::vector<std::string> CMASS = {"0.204100", "0.232400", "0.279400"}; 
+  std::vector<std::string> CMASS = {"0.232400", "0.279400"}; 
 
   // // tsnk position
   // std::vector<int> TSNKS = {30, 32, 34};
@@ -26,7 +26,7 @@ namespace ENS{
 
   // smearings
   // light
-  std::vector<std::string> WIDTHS_l = {"8.61", "10.18"}; //, "12.30"};
+  std::vector<std::string> WIDTHS_l = {"10.18"}; //{"8.61", "10.18"}; //, "12.30"};
   // strange
   std::vector<std::string> WIDTHS_s = {"7.82", "9.40"}; //, "10.18"};
 
